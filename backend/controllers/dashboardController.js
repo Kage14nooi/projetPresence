@@ -52,6 +52,7 @@ exports.getDashboardData = async (req, res) => {
           include: [
             {
               model: Matiere,
+              as: "matiere",
               include: [{ model: Professeur, attributes: ["professeur_nom"] }],
             },
           ],

@@ -1167,19 +1167,19 @@ Parcours.hasMany(Etudiant, {
   onDelete: "SET NULL",
   onUpdate: "CASCADE",
 });
-Etudiant.belongsTo(Parcours, { foreignKey: "parcours_id" });
+Etudiant.belongsTo(Parcours, { foreignKey: "parcours_id", as: "parcour" });
 Mentions.hasMany(Etudiant, {
   foreignKey: "mention_id",
   onDelete: "SET NULL",
   onUpdate: "CASCADE",
 });
-Etudiant.belongsTo(Mentions, { foreignKey: "mention_id" });
+Etudiant.belongsTo(Mentions, { foreignKey: "mention_id", as: "mention" });
 Niveau.hasMany(Etudiant, {
   foreignKey: "niveau_id",
   onDelete: "SET NULL",
   onUpdate: "CASCADE",
 });
-Etudiant.belongsTo(Niveau, { foreignKey: "niveau_id" });
+Etudiant.belongsTo(Niveau, { foreignKey: "niveau_id", as: "niveau" });
 
 // Professeur -> Matiere
 Professeur.hasMany(Matiere, {
@@ -1215,7 +1215,7 @@ Matiere.hasMany(Seance, {
   onDelete: "CASCADE",
   onUpdate: "CASCADE",
 });
-Seance.belongsTo(Matiere, { foreignKey: "matiere_id" });
+Seance.belongsTo(Matiere, { foreignKey: "matiere_id", as: "matiere" });
 
 // Etudiant/Seance -> Presence
 Etudiant.hasMany(Presence, {

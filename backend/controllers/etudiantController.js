@@ -36,9 +36,9 @@ exports.getEtudiants = async (req, res) => {
     const etudiants = await Etudiant.findAll({
       include: [
         { model: Role }, // Rôle de l'étudiant
-        { model: Parcours }, // Parcours
-        { model: Niveau }, // Niveau
-        { model: Mentions }, // Mention
+        { model: Parcours, as: "parcour" }, // Parcours
+        { model: Niveau, as: "niveau" }, // Niveau
+        { model: Mentions, as: "mention" }, // Mention
       ],
     });
 

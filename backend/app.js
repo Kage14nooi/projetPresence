@@ -25,6 +25,7 @@ const NiveauRoute = require("./routes/NiveauRoutes");
 const roleRoutes = require("./routes/roleRoutes");
 const sceancesRoutes = require("./routes/sceanceRoutes");
 const dashboardRoute = require("./routes/dashboardRoute");
+const rapportRoutes = require("./routes/rapportRoutes");
 
 const path = require("path");
 
@@ -46,5 +47,6 @@ app.use("/api/appareils", appareilRoutes);
 app.use("/api/sceances", sceancesRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/dashboard", dashboardRoute);
+app.use("/api/rapport", rapportRoutes);
 
 module.exports = app;

@@ -38,14 +38,17 @@ exports.getAbsences = async (req, res) => {
           include: [
             {
               model: Niveau,
+              as: "niveau",
               attributes: ["niveau_nom"],
             },
             {
               model: Parcours,
+              as: "parcour",
               attributes: ["parcours_nom"],
             },
             {
               model: Mentions,
+              as: "mention",
               attributes: ["mention_nom"],
             },
           ],
@@ -71,6 +74,7 @@ exports.getAbsences = async (req, res) => {
           include: [
             {
               model: Matiere,
+              as: "matiere",
               attributes: ["matiere_nom"],
             },
           ],

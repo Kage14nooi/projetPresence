@@ -62,7 +62,7 @@ exports.getAllSeances = async (req, res) => {
         { model: Appareil, attributes: ["appareil_nom", "appareil_serie"] },
         {
           model: Matiere,
-          // as: "matiere", // ⚠️ doit être identique à l'alias dans ton association
+          as: "matiere", // ⚠️ doit être identique à l'alias dans ton association
           attributes: ["matiere_nom"],
           include: [
             {
@@ -98,7 +98,7 @@ exports.getSeanceById = async (req, res) => {
         { model: Appareil, attributes: ["appareil_nom", "appareil_serie"] },
         {
           model: Matiere,
-          // as: "matiere",
+          as: "matiere",
           attributes: ["matiere_nom"],
         },
       ],
@@ -126,18 +126,7 @@ exports.updateSeance = async (req, res) => {
 };
 
 // ---------------- DELETE ----------------
-// exports.deleteSeance = async (req, res) => {
-//   try {
-//     const seance = await Seance.findByPk(req.params.id);
-//     if (!seance) return res.status(404).json({ error: "Séance non trouvée" });
 
-//     await seance.destroy(); // ← Les Presence, Absence et LogAppareil seront supprimés automatiquement
-//     res.json({ message: "Séance supprimée avec succès" });
-//   } catch (err) {
-//     console.error("❌ ERREUR LORS DE LA SUPPRESSION DE SEANCE :", err);
-//     res.status(500).json({ error: err.message });
-//   }
-// };
 exports.deleteSeance = async (req, res) => {
   try {
     const id = req.params.id;
@@ -164,7 +153,7 @@ exports.toggleSeanceActive = async (req, res) => {
       include: [
         {
           model: Matiere,
-          //  as: "matiere"
+          as: "matiere",
         },
       ],
     });
@@ -290,9 +279,9 @@ exports.getPresenceBySeance = async (req, res) => {
             "etudiant_prenom",
           ],
           include: [
-            { model: Parcours, attributes: ["parcours_nom"] },
-            { model: Mentions, attributes: ["mention_nom"] },
-            { model: Niveau, attributes: ["niveau_nom"] },
+            { model: Parcours, as: "parcour", attributes: ["parcours_nom"] },
+            { model: Mentions, as: "mention", attributes: ["mention_nom"] },
+            { model: Niveau, as: "niveau", attributes: ["niveau_nom"] },
           ],
         },
         {
@@ -302,7 +291,7 @@ exports.getPresenceBySeance = async (req, res) => {
           include: [
             {
               model: Matiere,
-              // as: "matiere",
+              as: "matiere",
               attributes: ["matiere_id", "matiere_nom"],
               include: [
                 {
@@ -380,8 +369,7 @@ exports.checkAndCloseExpiredSeances = async (req, res) => {
       include: [
         {
           model: Matiere,
-          // as: "matiere"
-          //
+          as: "matiere",
         },
       ],
     });

@@ -6,7 +6,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import Layout from "./composants/Layout/Layout";
-import Dashboard from "./composants/Dashboard/Dashboard";
+// import Dashboard from "./composants/Dashboard/Dashboard";
 import EtudiantPage from "./pages/EtudiantPage";
 import ProfesseurPage from "./pages/ProfesseurPage"; // ← Import ajouté
 import MatierePage from "./pages/MatierePage";
@@ -20,6 +20,8 @@ import AbsenceNotification from "./pages/NotificationPage";
 import AbsencePage from "./pages/AbsencePage";
 import PiecePage from "./pages/PiecePage";
 import AppareilPage from "./pages/AppareilPage";
+import Rapport from "./pages/rapportPage";
+import Dashboard from "./pages/dashboardPage";
 
 function App() {
   const isAuthenticated = !!localStorage.getItem("token"); // Vérifie si token existe
@@ -40,6 +42,18 @@ function App() {
               isAuthenticated ? (
                 <Layout>
                   <Dashboard />
+                </Layout>
+              ) : (
+                <Navigate to="/login" />
+              )
+            }
+          />
+          <Route
+            path="/rapport/etudiant"
+            element={
+              isAuthenticated ? (
+                <Layout>
+                  <Rapport />
                 </Layout>
               ) : (
                 <Navigate to="/login" />
