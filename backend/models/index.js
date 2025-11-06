@@ -146,6 +146,45 @@ Notification.belongsTo(Etudiant, { foreignKey: "etudiant_id" });
 LogAppareil.belongsTo(Etudiant, { foreignKey: "etudiant_id" });
 LogAppareil.belongsTo(Matiere, { foreignKey: "matiere_id" });
 
+// Associations avec cascade
+Etudiant.belongsTo(Role, { foreignKey: "role_id" });
+
+// Présences et absences liées à l'étudiant
+Presence.belongsTo(Etudiant, {
+  foreignKey: "etudiant_id",
+  onDelete: "CASCADE",
+});
+Absence.belongsTo(Etudiant, { foreignKey: "etudiant_id", onDelete: "CASCADE" });
+Notification.belongsTo(Etudiant, {
+  foreignKey: "etudiant_id",
+  onDelete: "CASCADE",
+});
+LogAppareil.belongsTo(Etudiant, {
+  foreignKey: "etudiant_id",
+  onDelete: "CASCADE",
+});
+
+// Matière et relations
+Matiere.belongsTo(Professeur, {
+  foreignKey: "professeur_id",
+  onDelete: "SET NULL",
+});
+Matiere.belongsTo(Parcours, {
+  foreignKey: "parcours_id",
+  onDelete: "SET NULL",
+});
+Presence.belongsTo(Matiere, { foreignKey: "matiere_id", onDelete: "CASCADE" });
+LogAppareil.belongsTo(Matiere, {
+  foreignKey: "matiere_id",
+  onDelete: "CASCADE",
+});
+
+// Absence liée à pièce justificative
+Absence.belongsTo(PieceJustificative, {
+  foreignKey: "pieceJust_id",
+  onDelete: "SET NULL",
+});
+
 module.exports = {
   sequelize,
   Admin,
