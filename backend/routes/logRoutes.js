@@ -1,7 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const logController = require("../controllers/logController");
+const logAppareilController = require("../controllers/logController");
 
-router.get("/", logController.getLogs);
+router.post("/", logAppareilController.createLog);
+router.get("/", logAppareilController.getLogs);
+router.get("/matricule/:matricule", logAppareilController.searchByMatricule);
+router.get("/date/:date", logAppareilController.searchByDate);
+router.put("/:id", logAppareilController.updateLog);
+router.delete("/:id", logAppareilController.deleteLog);
 
 module.exports = router;
