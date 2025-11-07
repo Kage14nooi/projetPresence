@@ -9,6 +9,11 @@ const sequelize = new Sequelize("gestion_presence", "root", "", {
 const Admin = sequelize.define(
   "admin",
   {
+    admin_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
     admin_nom: DataTypes.STRING,
     admin_prenom: DataTypes.STRING,
     admin_mdp: DataTypes.STRING,
@@ -20,6 +25,7 @@ const Admin = sequelize.define(
 const Role = sequelize.define(
   "role",
   {
+    role_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     role_type: DataTypes.STRING,
   },
   { timestamps: false }
@@ -29,6 +35,11 @@ const Role = sequelize.define(
 const Etudiant = sequelize.define(
   "etudiant",
   {
+    etudiant_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
     etudiant_nom: DataTypes.STRING,
     etudiant_prenom: DataTypes.STRING,
     etudiant_matricule: { type: DataTypes.STRING, unique: true },
@@ -45,6 +56,11 @@ const Etudiant = sequelize.define(
 const Professeur = sequelize.define(
   "professeur",
   {
+    professeur_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
     professeur_nom: DataTypes.STRING,
     professeur_prenom: DataTypes.STRING,
     professeur_mail: DataTypes.STRING,
@@ -57,6 +73,11 @@ const Professeur = sequelize.define(
 const Parcours = sequelize.define(
   "parcours",
   {
+    parcours_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
     parcours_nom: DataTypes.STRING,
   },
   { timestamps: false }
@@ -66,6 +87,11 @@ const Parcours = sequelize.define(
 const Matiere = sequelize.define(
   "matiere",
   {
+    matiere_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
     matiere_nom: DataTypes.STRING,
     matiere_heureDebut: DataTypes.TIME,
     matiere_heureFin: DataTypes.TIME,
@@ -77,8 +103,13 @@ const Matiere = sequelize.define(
 
 // Pièce justificative
 const PieceJustificative = sequelize.define(
-  "piece_justificative",
+  "piece",
   {
+    pieceJust_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
     pieceJust_description: DataTypes.STRING,
   },
   { timestamps: false }
@@ -88,6 +119,11 @@ const PieceJustificative = sequelize.define(
 const Presence = sequelize.define(
   "presence",
   {
+    presence_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
     etudiant_id: DataTypes.INTEGER,
     matiere_id: DataTypes.INTEGER,
     date_presence: DataTypes.DATEONLY,
@@ -102,7 +138,13 @@ const Presence = sequelize.define(
 const Absence = sequelize.define(
   "absence",
   {
+    absence_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
     etudiant_id: DataTypes.INTEGER,
+    matiere_id: DataTypes.INTEGER,
     date_absence: DataTypes.DATEONLY,
     motif: DataTypes.ENUM("Maladie", "Evénement familial", "Autres"),
     pieceJust_id: DataTypes.INTEGER,
@@ -115,6 +157,11 @@ const Absence = sequelize.define(
 const Notification = sequelize.define(
   "notification",
   {
+    notification_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
     etudiant_id: DataTypes.INTEGER,
     objet: DataTypes.STRING,
     description: DataTypes.TEXT,
@@ -125,8 +172,9 @@ const Notification = sequelize.define(
 
 // Log appareil
 const LogAppareil = sequelize.define(
-  "log_appareil",
+  "log",
   {
+    log_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     etudiant_id: DataTypes.INTEGER,
     matiere_id: DataTypes.INTEGER,
     timestamp: DataTypes.DATE,
@@ -141,49 +189,11 @@ Matiere.belongsTo(Parcours, { foreignKey: "parcours_id" });
 Presence.belongsTo(Etudiant, { foreignKey: "etudiant_id" });
 Presence.belongsTo(Matiere, { foreignKey: "matiere_id" });
 Absence.belongsTo(Etudiant, { foreignKey: "etudiant_id" });
+Absence.belongsTo(Matiere, { foreignKey: "matiere_id" });
 Absence.belongsTo(PieceJustificative, { foreignKey: "pieceJust_id" });
 Notification.belongsTo(Etudiant, { foreignKey: "etudiant_id" });
 LogAppareil.belongsTo(Etudiant, { foreignKey: "etudiant_id" });
 LogAppareil.belongsTo(Matiere, { foreignKey: "matiere_id" });
-
-// // Associations avec cascade
-// Etudiant.belongsTo(Role, { foreignKey: "role_id" });
-
-// // Présences et absences liées à l'étudiant
-// Presence.belongsTo(Etudiant, {
-//   foreignKey: "etudiant_id",
-//   onDelete: "CASCADE",
-// });
-// Absence.belongsTo(Etudiant, { foreignKey: "etudiant_id", onDelete: "CASCADE" });
-// Notification.belongsTo(Etudiant, {
-//   foreignKey: "etudiant_id",
-//   onDelete: "CASCADE",
-// });
-// LogAppareil.belongsTo(Etudiant, {
-//   foreignKey: "etudiant_id",
-//   onDelete: "CASCADE",
-// });
-
-// // Matière et relations
-// Matiere.belongsTo(Professeur, {
-//   foreignKey: "professeur_id",
-//   onDelete: "SET NULL",
-// });
-// Matiere.belongsTo(Parcours, {
-//   foreignKey: "parcours_id",
-//   onDelete: "SET NULL",
-// });
-// Presence.belongsTo(Matiere, { foreignKey: "matiere_id", onDelete: "CASCADE" });
-// LogAppareil.belongsTo(Matiere, {
-//   foreignKey: "matiere_id",
-//   onDelete: "CASCADE",
-// });
-
-// // Absence liée à pièce justificative
-// Absence.belongsTo(PieceJustificative, {
-//   foreignKey: "pieceJust_id",
-//   onDelete: "SET NULL",
-// });
 
 module.exports = {
   sequelize,
