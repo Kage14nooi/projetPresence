@@ -10,6 +10,7 @@ function App() {
     <>
       <div>
         <p className="text-3xl font-bold underline">hello word</p>
+        <button className="">test</button>
       </div>
     </>
   );

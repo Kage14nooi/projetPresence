@@ -200,7 +200,6 @@
 // server.listen(3001, () =>
 //   console.log("Backend Node.js démarré sur http://localhost:3001")
 // );
-
 const http = require("http");
 const { Server } = require("socket.io");
 const app = require("./app");
@@ -208,6 +207,12 @@ require("./config/database"); // Connexion DB
 
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
+
+// Middleware pour passer io à toutes les requêtes
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
 
 // SOCKET.IO
 io.on("connection", (socket) => {
@@ -217,5 +222,3 @@ io.on("connection", (socket) => {
 server.listen(3001, () =>
   console.log("Backend Node.js démarré sur http://localhost:3001")
 );
-
-module.exports = io; // pour réutiliser dans les contrôleurs (ex: presence)
