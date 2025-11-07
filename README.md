@@ -1,1 +1,5 @@
-# projetPresence
+# Projet fin d'année
+
+## CONCEPTION ET REALISATION D’UNE APPLICATION POUR LA GESTION AUTOMATISEE DES ABSENCES
+
+### Déscription
