@@ -66,45 +66,24 @@ exports.updateEtudiant = async (req, res) => {
 };
 
 // ---------------- DELETE ----------------
-
 exports.deleteEtudiant = async (req, res) => {
   try {
+    const etudiant_id = req.params.id; // Vérifie que ta route est /api/etudiants/:id
+    console.log("Suppression étudiant ID:", etudiant_id);
+
     // Vérifie si l'étudiant existe
-    const etudiant = await Etudiant.findByPk(req.params.id);
+    const etudiant = await Etudiant.findByPk(etudiant_id);
     if (!etudiant)
       return res.status(404).json({ error: "Étudiant non trouvé" });
 
-    // Vérifie si Notification est défini avant suppression
-    if (Notification) {
-      await Notification.destroy({ where: { etudiant_id: etudiant.id } });
-      console.log("✅ Notifications supprimées");
-    } else {
-      console.log("⚠️ Notification non défini");
-    }
+    const id = etudiant.etudiant_id; // ✅ Utiliser le bon nom de colonne
 
-    // Vérifie si Presence est défini avant suppression
-    if (Presence) {
-      await Presence.destroy({ where: { etudiant_id: etudiant.id } });
-      console.log("✅ Présences supprimées");
-    } else {
-      console.log("⚠️ Presence non défini");
-    }
-
-    // Vérifie si Absence est défini avant suppression
-    if (Absence) {
-      await Absence.destroy({ where: { etudiant_id: etudiant.id } });
-      console.log("✅ Absences supprimées");
-    } else {
-      console.log("⚠️ Absence non défini");
-    }
-
-    // Vérifie si LogAppareil est défini avant suppression
-    if (LogAppareil) {
-      await LogAppareil.destroy({ where: { etudiant_id: etudiant.id } });
-      console.log("✅ Logs supprimés");
-    } else {
-      console.log("⚠️ LogAppareil non défini");
-    }
+    // Supprime les dépendances si elles existent
+    if (Notification)
+      await Notification.destroy({ where: { etudiant_id: id } });
+    if (Presence) await Presence.destroy({ where: { etudiant_id: id } });
+    if (Absence) await Absence.destroy({ where: { etudiant_id: id } });
+    if (LogAppareil) await LogAppareil.destroy({ where: { etudiant_id: id } });
 
     // Supprime l'étudiant
     await etudiant.destroy();
@@ -118,36 +97,6 @@ exports.deleteEtudiant = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
-// exports.deleteEtudiant = async (req, res) => {
-//   try {
-//     const etudiant = await Etudiant.findByPk(req.params.id);
-//     if (!etudiant)
-//       return res.status(404).json({ error: "Étudiant non trouvé" });
-
-//     // Supprimer toutes les notifications liées
-//     await Notification.destroy({ where: { etudiant_id: etudiant.id } });
-
-//     // Supprimer toutes les présences liées
-//     await Presence.destroy({ where: { etudiant_id: etudiant.id } });
-
-//     // Supprimer toutes les absences liées
-//     await Absence.destroy({ where: { etudiant_id: etudiant.id } });
-
-//     // Supprimer tous les logs liés
-//     await LogAppareil.destroy({ where: { etudiant_id: etudiant.id } });
-
-//     // Supprimer l'étudiant
-//     await etudiant.destroy();
-
-//     res.json({
-//       message: "Étudiant et toutes ses dépendances supprimés avec succès",
-//     });
-//   } catch (err) {
-//     console.error("❌ ERREUR LORS DE LA SUPPRESSION D'ÉTUDIANT :", err);
-//     res.status(500).json({ error: err.message });
-//   }
-// };
 
 // ---------------- FILTRE SIMPLE ----------------
 exports.filterEtudiants = async (req, res) => {
