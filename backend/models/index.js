@@ -16,6 +16,7 @@ const Admin = sequelize.define(
     },
     admin_nom: DataTypes.STRING,
     admin_prenom: DataTypes.STRING,
+    admin_email: DataTypes.STRING,
     admin_mdp: DataTypes.STRING,
   },
   { timestamps: false }

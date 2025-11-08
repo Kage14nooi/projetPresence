@@ -1,19 +1,28 @@
 const { Admin } = require("../models");
 const bcrypt = require("bcryptjs");
+const { Op } = require("sequelize");
 
 // ➕ Créer un administrateur
 exports.createAdmin = async (req, res) => {
   try {
-    const { admin_nom, admin_prenom, admin_mdp } = req.body;
+    const { admin_nom, admin_prenom, admin_email, admin_mdp } = req.body;
 
-    if (!admin_nom || !admin_prenom || !admin_mdp)
-      return res.status(400).json({ message: "Champs manquants" });
+    if (!admin_nom || !admin_prenom || !admin_email || !admin_mdp)
+      return res
+        .status(400)
+        .json({ message: "Tous les champs sont obligatoires" });
+
+    // Vérifier si l'email existe déjà
+    const existingAdmin = await Admin.findOne({ where: { admin_email } });
+    if (existingAdmin)
+      return res.status(400).json({ message: "Cet email est déjà utilisé" });
 
     const hash = await bcrypt.hash(admin_mdp, 10);
 
     const admin = await Admin.create({
       admin_nom,
       admin_prenom,
+      admin_email,
       admin_mdp: hash,
     });
 
@@ -23,6 +32,7 @@ exports.createAdmin = async (req, res) => {
         id: admin.admin_id,
         nom: admin.admin_nom,
         prenom: admin.admin_prenom,
+        email: admin.admin_email,
       },
     });
   } catch (err) {
@@ -35,7 +45,7 @@ exports.createAdmin = async (req, res) => {
 exports.getAdmins = async (req, res) => {
   try {
     const admins = await Admin.findAll({
-      attributes: ["admin_id", "admin_nom", "admin_prenom"],
+      attributes: ["admin_id", "admin_nom", "admin_prenom", "admin_email"],
     });
     res.json(admins);
   } catch (err) {
@@ -47,7 +57,7 @@ exports.getAdmins = async (req, res) => {
 exports.getAdminById = async (req, res) => {
   try {
     const admin = await Admin.findByPk(req.params.id, {
-      attributes: ["admin_id", "admin_nom", "admin_prenom"],
+      attributes: ["admin_id", "admin_nom", "admin_prenom", "admin_email"],
     });
     if (!admin)
       return res.status(404).json({ message: "Administrateur non trouvé" });
@@ -64,8 +74,8 @@ exports.updateAdmin = async (req, res) => {
     if (!admin)
       return res.status(404).json({ message: "Administrateur non trouvé" });
 
-    const { admin_nom, admin_prenom, admin_mdp } = req.body;
-    let updateData = { admin_nom, admin_prenom };
+    const { admin_nom, admin_prenom, admin_email, admin_mdp } = req.body;
+    let updateData = { admin_nom, admin_prenom, admin_email };
 
     if (admin_mdp) {
       updateData.admin_mdp = await bcrypt.hash(admin_mdp, 10);
@@ -79,6 +89,7 @@ exports.updateAdmin = async (req, res) => {
         id: admin.admin_id,
         nom: admin.admin_nom,
         prenom: admin.admin_prenom,
+        email: admin.admin_email,
       },
     });
   } catch (err) {
@@ -100,18 +111,18 @@ exports.deleteAdmin = async (req, res) => {
   }
 };
 
-// 🔍 Rechercher un admin (par nom ou prénom)
+// 🔍 Rechercher un admin (par nom, prénom ou email)
 exports.searchAdmins = async (req, res) => {
   try {
-    const { nom, prenom } = req.query;
-    const { Op } = require("sequelize");
+    const { nom, prenom, email } = req.query;
 
     const admins = await Admin.findAll({
       where: {
         ...(nom ? { admin_nom: { [Op.like]: `%${nom}%` } } : {}),
         ...(prenom ? { admin_prenom: { [Op.like]: `%${prenom}%` } } : {}),
+        ...(email ? { admin_email: { [Op.like]: `%${email}%` } } : {}),
       },
-      attributes: ["admin_id", "admin_nom", "admin_prenom"],
+      attributes: ["admin_id", "admin_nom", "admin_prenom", "admin_email"],
     });
 
     res.json(admins);
@@ -120,11 +131,11 @@ exports.searchAdmins = async (req, res) => {
   }
 };
 
-// 🔐 Connexion admin
+// 🔐 Connexion admin (via email)
 exports.loginAdmin = async (req, res) => {
   try {
-    const { admin_nom, admin_mdp } = req.body;
-    const admin = await Admin.findOne({ where: { admin_nom } });
+    const { admin_email, admin_mdp } = req.body;
+    const admin = await Admin.findOne({ where: { admin_email } });
 
     if (!admin)
       return res.status(404).json({ message: "Administrateur non trouvé" });
@@ -139,6 +150,7 @@ exports.loginAdmin = async (req, res) => {
         id: admin.admin_id,
         nom: admin.admin_nom,
         prenom: admin.admin_prenom,
+        email: admin.admin_email,
       },
     });
   } catch (err) {
