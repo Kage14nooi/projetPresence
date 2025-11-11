@@ -15,7 +15,7 @@ exports.getMatieres = async (req, res) => {
   try {
     const matieres = await Matiere.findAll({
       include: [Professeur, Parcours],
-      order: [["nom_matiere", "ASC"]],
+      order: [["matiere_nom", "ASC"]],
     });
     res.json(matieres);
   } catch (err) {
