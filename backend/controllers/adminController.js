@@ -1,6 +1,7 @@
 const { Admin } = require("../models");
 const bcrypt = require("bcryptjs");
 const { Op } = require("sequelize");
+const jwt = require("jsonwebtoken");
 
 // ➕ Créer un administrateur
 exports.createAdmin = async (req, res) => {
@@ -45,7 +46,13 @@ exports.createAdmin = async (req, res) => {
 exports.getAdmins = async (req, res) => {
   try {
     const admins = await Admin.findAll({
-      attributes: ["admin_id", "admin_nom", "admin_prenom", "admin_email"],
+      attributes: [
+        "admin_id",
+        "admin_nom",
+        "admin_prenom",
+        "admin_email",
+        "admin_mdp",
+      ],
     });
     res.json(admins);
   } catch (err) {
@@ -132,11 +139,37 @@ exports.searchAdmins = async (req, res) => {
 };
 
 // 🔐 Connexion admin (via email)
+// exports.loginAdmin = async (req, res) => {
+//   try {
+//     const { admin_email, admin_mdp } = req.body;
+//     const admin = await Admin.findOne({ where: { admin_email } });
+
+//     if (!admin)
+//       return res.status(404).json({ message: "Administrateur non trouvé" });
+
+//     const isValid = await bcrypt.compare(admin_mdp, admin.admin_mdp);
+//     if (!isValid)
+//       return res.status(401).json({ message: "Mot de passe incorrect" });
+
+//     res.json({
+//       message: "Connexion réussie",
+//       admin: {
+//         id: admin.admin_id,
+//         nom: admin.admin_nom,
+//         prenom: admin.admin_prenom,
+//         email: admin.admin_email,
+//       },
+//     });
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+
 exports.loginAdmin = async (req, res) => {
   try {
     const { admin_email, admin_mdp } = req.body;
-    const admin = await Admin.findOne({ where: { admin_email } });
 
+    const admin = await Admin.findOne({ where: { admin_email } });
     if (!admin)
       return res.status(404).json({ message: "Administrateur non trouvé" });
 
@@ -144,8 +177,20 @@ exports.loginAdmin = async (req, res) => {
     if (!isValid)
       return res.status(401).json({ message: "Mot de passe incorrect" });
 
+    // Génération du token
+    const token = jwt.sign(
+      {
+        id: admin.admin_id,
+        email: admin.admin_email,
+        nom: admin.admin_nom,
+      },
+      process.env.JWT_SECRET || "secret_key",
+      { expiresIn: "1h" }
+    );
+
     res.json({
       message: "Connexion réussie",
+      token,
       admin: {
         id: admin.admin_id,
         nom: admin.admin_nom,

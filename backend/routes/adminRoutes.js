@@ -1,13 +1,14 @@
 const express = require("express");
 const router = express.Router();
 const adminController = require("../controllers/adminController");
+const { verifyToken } = require("../middlewares/authMiddleware");
 
 router.post("/", adminController.createAdmin);
 router.get("/", adminController.getAdmins);
 router.get("/search", adminController.searchAdmins);
-router.get("/:id", adminController.getAdminById);
-router.put("/:id", adminController.updateAdmin);
-router.delete("/:id", adminController.deleteAdmin);
+router.get("/:id", verifyToken, adminController.getAdminById);
+router.put("/:id", verifyToken, adminController.updateAdmin);
+router.delete("/:id", verifyToken, adminController.deleteAdmin);
 
 // Connexion (login)
 router.post("/login", adminController.loginAdmin);
