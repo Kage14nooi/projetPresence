@@ -1,44 +1,4 @@
-// // src/App.tsx
-// import "./App.css";
-// import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-// import Layout from "./composants/Layout/Layout";
-// import Dashboard from "./composants/Dashboard/Dashboard";
-// import EtudiantPage from "./pages/EtudiantPage";
-// import { AuthSystem } from "./composants/authentification/auth-system";
 
-// function App() {
-//   return (
-//     <Router>
-//       <div className="min-h-screen bg-gra@y-100">
-//         <Routes>
-//           {/* Page de connexion */}
-//           <Route path="/login" element={<AuthSystem />} />
-
-//           {/* Layout commun à toutes les pages protégées */}
-//           <Route
-//             path="/dashboard"
-//             element={
-//               <Layout>
-//                 <Dashboard />
-//               </Layout>
-//             }
-//           />
-//           <Route
-//             path="/etudiants"
-//             element={
-//               <Layout>
-//                 <EtudiantPage />
-//               </Layout>
-//             }
-//           />
-//         </Routes>
-//       </div>
-//     </Router>
-//   );
-// }
-
-// export default App;
-// src/App.tsx
 import "./App.css";
 import {
   BrowserRouter as Router,
@@ -49,7 +9,10 @@ import {
 import Layout from "./composants/Layout/Layout";
 import Dashboard from "./composants/Dashboard/Dashboard";
 import EtudiantPage from "./pages/EtudiantPage";
+import ProfesseurPage from "./pages/ProfesseurPage"; // ← Import ajouté
+import MatierePage from "./pages/MatierePage";
 import { AuthSystem } from "./composants/authentification/auth-system";
+import ParcoursPage from "./pages/ParcourPage";
 
 function App() {
   const isAuthenticated = !!localStorage.getItem("token"); // Vérifie si token existe
@@ -88,9 +51,6 @@ function App() {
               )
             }
           />
-
-          {/* Redirige toutes les autres URLs vers login */}
-          <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
       </div>
     </Router>
