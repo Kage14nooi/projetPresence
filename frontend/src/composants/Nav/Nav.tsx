@@ -55,6 +55,7 @@ const NavBar: React.FC<NavBarProps> = ({
       path: "/professeurs",
     },
     { id: "subjects", label: "Matières", icon: BookOpen, path: "/matieres" },
+    { id: "parcours", label: "Parcours", icon: BookOpen, path: "/parcours" },
     {
       id: "presence",
       label: "Présences",
