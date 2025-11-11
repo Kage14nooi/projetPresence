@@ -6,6 +6,7 @@ const app = express();
 
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Import des routes
 const adminRoutes = require("./routes/adminRoutes");

@@ -39,6 +39,10 @@ const NavBar: React.FC<NavBarProps> = ({
   setActiveMenu,
 }) => {
   const navigate = useNavigate();
+  // Récupération des infos depuis localStorage
+  const userData = JSON.parse(localStorage.getItem("user") || "{}");
+  const userName = userData.nom || "Utilisateur";
+  const userEmail = userData.email || "email@example.com";
 
   const menuItems: MenuItem[] = [
     {
@@ -85,6 +89,9 @@ const NavBar: React.FC<NavBarProps> = ({
     },
   ];
 
+  const handleDeconnect = () => {
+    window.location.href = "/login";
+  };
   const handleMenuClick = (item: MenuItem) => {
     setActiveMenu(item.id);
     navigate(item.path);
@@ -178,22 +185,29 @@ const NavBar: React.FC<NavBarProps> = ({
         {sidebarOpen ? (
           <div className="flex items-center space-x-3 mb-3">
             <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center font-bold shadow-lg">
-              AD
+              {userName
+                .split(" ")
+                .map((n: string) => n[0])
+                .join("")}
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-sm">Admin User</p>
-              <p className="text-xs text-indigo-300">admin@school.com</p>
+              <p className="font-semibold text-sm">{userName}</p>
+              <p className="text-xs text-indigo-300">{userEmail}</p>
             </div>
           </div>
         ) : (
           <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center font-bold shadow-lg mx-auto mb-3">
-            AD
+            {userName
+              .split(" ")
+              .map((n: string) => n[0])
+              .join("")}
           </div>
         )}
         <button
           className={`w-full flex items-center ${
             sidebarOpen ? "justify-start px-3" : "justify-center"
           } py-2 bg-red-500 hover:bg-red-600 rounded-lg transition-colors`}
+          onClick={handleDeconnect}
         >
           <LogOut className="w-4 h-4" />
           {sidebarOpen && (
