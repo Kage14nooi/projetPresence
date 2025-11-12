@@ -12,5 +12,6 @@ router.delete("/:id", verifyToken, adminController.deleteAdmin);
 
 // Connexion (login)
 router.post("/login", adminController.loginAdmin);
+router.post("/logout", verifyToken, adminController.logoutAdmin);
 
 module.exports = router;

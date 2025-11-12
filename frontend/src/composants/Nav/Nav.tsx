@@ -90,8 +90,16 @@ const NavBar: React.FC<NavBarProps> = ({
   ];
 
   const handleDeconnect = () => {
+    // Supprime le token JWT du stockage local
+    localStorage.removeItem("token");
+
+    // (Optionnel) Supprime aussi les infos de l'admin stockées localement
+    localStorage.removeItem("admin");
+
+    // Redirige vers la page de connexion
     window.location.href = "/login";
   };
+
   const handleMenuClick = (item: MenuItem) => {
     setActiveMenu(item.id);
     navigate(item.path);
