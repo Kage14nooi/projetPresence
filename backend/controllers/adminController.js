@@ -202,3 +202,14 @@ exports.loginAdmin = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.logoutAdmin = async (req, res) => {
+  try {
+    // Il suffit de demander au client de supprimer le token (dans le localStorage ou cookie)
+    res.json({
+      message: "Déconnexion réussie. Veuillez supprimer le token côté client.",
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
