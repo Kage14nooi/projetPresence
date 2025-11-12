@@ -14,6 +14,7 @@ import { AuthSystem } from "./composants/authentification/auth-system";
 import ParcoursPage from "./pages/ParcourPage";
 import NiveauPage from "./pages/Niveaupage";
 import MentionPage from "./pages/MentionPage";
+import SeancePage from "./pages/SeancePage";
 
 function App() {
   // const isAuthenticated = !!localStorage.getItem("token"); // Vérifie si token existe
@@ -113,6 +114,18 @@ function App() {
                 </Layout>
               ) : (
                 <Navigate to="/mention" />
+              )
+            }
+          />
+          <Route
+            path="/seance"
+            element={
+              isAuthenticated ? (
+                <Layout>
+                  <SeancePage />
+                </Layout>
+              ) : (
+                <Navigate to="/seance" />
               )
             }
           />
