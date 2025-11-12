@@ -12,9 +12,12 @@ import ProfesseurPage from "./pages/ProfesseurPage"; // ← Import ajouté
 import MatierePage from "./pages/MatierePage";
 import { AuthSystem } from "./composants/authentification/auth-system";
 import ParcoursPage from "./pages/ParcourPage";
+import NiveauPage from "./pages/Niveaupage";
+import MentionPage from "./pages/MentionPage";
 
 function App() {
-  const isAuthenticated = !!localStorage.getItem("token"); // Vérifie si token existe
+  // const isAuthenticated = !!localStorage.getItem("token"); // Vérifie si token existe
+  const isAuthenticated = true; // Vérifie si token existe
 
   return (
     <Router>
@@ -86,6 +89,30 @@ function App() {
                 </Layout>
               ) : (
                 <Navigate to="/login" />
+              )
+            }
+          />
+          <Route
+            path="/niveau"
+            element={
+              isAuthenticated ? (
+                <Layout>
+                  <NiveauPage />
+                </Layout>
+              ) : (
+                <Navigate to="/login" />
+              )
+            }
+          />
+          <Route
+            path="/mention"
+            element={
+              isAuthenticated ? (
+                <Layout>
+                  <MentionPage />
+                </Layout>
+              ) : (
+                <Navigate to="/mention" />
               )
             }
           />
