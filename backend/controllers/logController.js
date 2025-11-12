@@ -1,4 +1,10 @@
-const { LogAppareil, Etudiant, Seance, Presence } = require("../models");
+const {
+  LogAppareil,
+  Etudiant,
+  Seance,
+  Presence,
+  Matiere,
+} = require("../models");
 
 // ========================================
 // Créer un log reçu de l'appareil
@@ -29,11 +35,24 @@ exports.createLog = async (req, res) => {
 
     // 3️⃣ Trouver la séance active pour cet étudiant (seance is_active = true)
     const seanceActive = await Seance.findOne({
-      where: {
-        is_active: true,
-        matiere_id: req.body.matiere_id || null, // si l'appareil envoie la matière
-      },
+      where: { is_active: true },
+      include: [
+        {
+          model: Matiere, // <--- corrigé ici
+          required: true,
+          attributes: ["matiere_id", "parcours_id", "niveau_id", "mention_id"],
+        },
+      ],
     });
+
+    // Filtrer ensuite en JS si besoin
+    const seanceFiltrée =
+      seanceActive &&
+      seanceActive.matiere.parcours_id === etudiant.parcours_id &&
+      seanceActive.matiere.niveau_id === etudiant.niveau_id &&
+      seanceActive.matiere.mention_id === etudiant.mention_id
+        ? seanceActive
+        : null;
 
     // 4️⃣ Créer le log dans la table LogAppareil
     const log = await LogAppareil.create({
