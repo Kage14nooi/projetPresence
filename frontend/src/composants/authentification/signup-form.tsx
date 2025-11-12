@@ -53,16 +53,39 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
     const validationErrors = validate();
 
     if (Object.keys(validationErrors).length === 0) {
-      const res = await axios.post(
-        "http://localhost:3001/api/admins/",
-        formData,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      try {
+        const res = await axios.post(
+          "http://localhost:3001/api/admins/",
+          {
+            admin_nom: formData.name,
+            admin_prenom: formData.firstname,
+            admin_email: formData.email,
+            admin_mdp: formData.password,
+          },
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
 
-      console.log("Inscription avec:", res.data);
-      alert("Inscription réussie!");
+        console.log("Inscription réussie :", res.data);
+        alert("Inscription réussie !");
+        setFormData({
+          name: "",
+          firstname: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+        });
+        setErrors({});
+        onSwitchToLogin(); // bascule vers la page login si besoin
+      } catch (err: any) {
+        console.error(err);
+        if (err.response && err.response.data && err.response.data.message) {
+          alert(`Erreur serveur : ${err.response.data.message}`);
+        } else {
+          alert("Erreur lors de l'inscription. Veuillez réessayer.");
+        }
+      }
     } else {
       setErrors(validationErrors);
     }
@@ -94,7 +117,7 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
           name="firstname"
           value={formData.firstname}
           onChange={handleChange}
-          error={errors.name}
+          error={errors.firstname} // ✅ correction ici
           icon={User}
           placeholder="Dupont"
         />

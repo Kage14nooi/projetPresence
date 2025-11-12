@@ -5,7 +5,9 @@ const sequelize = new Sequelize("gestion_presence", "root", "", {
   dialect: "mysql",
 });
 
+// =========================
 // Admin
+// =========================
 const Admin = sequelize.define(
   "admin",
   {
@@ -22,7 +24,9 @@ const Admin = sequelize.define(
   { timestamps: false }
 );
 
+// =========================
 // Role
+// =========================
 const Role = sequelize.define(
   "role",
   {
@@ -32,7 +36,56 @@ const Role = sequelize.define(
   { timestamps: false }
 );
 
+// =========================
+// Parcours
+// =========================
+const Parcours = sequelize.define(
+  "parcours",
+  {
+    parcours_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    parcours_nom: DataTypes.STRING,
+  },
+  { timestamps: false }
+);
+// =========================
+// Niveau
+// =========================
+const Niveau = sequelize.define(
+  "niveau",
+  {
+    niveau_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    niveau_nom: DataTypes.STRING,
+  },
+  { timestamps: false }
+);
+
+// =========================
+// Mentions
+// =========================
+const Mentions = sequelize.define(
+  "mentions",
+  {
+    mention_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    mention_nom: DataTypes.STRING,
+  },
+  { timestamps: false }
+);
+
+// =========================
 // Étudiant
+// =========================
 const Etudiant = sequelize.define(
   "etudiant",
   {
@@ -44,16 +97,20 @@ const Etudiant = sequelize.define(
     etudiant_nom: DataTypes.STRING,
     etudiant_prenom: DataTypes.STRING,
     etudiant_matricule: { type: DataTypes.STRING, unique: true },
-    etudiant_niveau: DataTypes.STRING,
-    etudiant_parcours: DataTypes.STRING,
     etudiant_mail: DataTypes.STRING,
     etudiant_tel: DataTypes.STRING,
+    parcours_id: DataTypes.INTEGER,
+    mention_id: DataTypes.INTEGER,
+    niveau_id: DataTypes.INTEGER,
     role_id: DataTypes.INTEGER,
+    device_user_id: DataTypes.STRING, // ID utilisé dans l'appareil biométrique
   },
   { timestamps: false }
 );
 
+// =========================
 // Professeur
+// =========================
 const Professeur = sequelize.define(
   "professeur",
   {
@@ -70,21 +127,9 @@ const Professeur = sequelize.define(
   { timestamps: false }
 );
 
-// Parcours
-const Parcours = sequelize.define(
-  "parcours",
-  {
-    parcours_id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
-    },
-    parcours_nom: DataTypes.STRING,
-  },
-  { timestamps: false }
-);
-
+// =========================
 // Matière
+// =========================
 const Matiere = sequelize.define(
   "matiere",
   {
@@ -98,11 +143,55 @@ const Matiere = sequelize.define(
     matiere_heureFin: DataTypes.TIME,
     professeur_id: DataTypes.INTEGER,
     parcours_id: DataTypes.INTEGER,
+    mention_id: DataTypes.INTEGER,
+    niveau_id: DataTypes.INTEGER,
   },
   { timestamps: false }
 );
 
+// =========================
+// Séance
+// =========================
+const Seance = sequelize.define(
+  "seance",
+  {
+    seance_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    matiere_id: DataTypes.INTEGER,
+    date_seance: DataTypes.DATEONLY,
+    heure_debut: DataTypes.TIME,
+    heure_fin: DataTypes.TIME,
+    is_active: { type: DataTypes.BOOLEAN, defaultValue: false }, // activable/désactivable
+  },
+  { timestamps: false }
+);
+
+// =========================
+// Présence
+// =========================
+const Presence = sequelize.define(
+  "presence",
+  {
+    presence_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    etudiant_id: DataTypes.INTEGER,
+    seance_id: DataTypes.INTEGER,
+    heure_entree: DataTypes.TIME,
+    heure_sortie: DataTypes.TIME,
+    status: { type: DataTypes.ENUM("P", "A"), defaultValue: "A" },
+  },
+  { timestamps: false }
+);
+
+// =========================
 // Pièce justificative
+// =========================
 const PieceJustificative = sequelize.define(
   "piece",
   {
@@ -116,26 +205,9 @@ const PieceJustificative = sequelize.define(
   { timestamps: false }
 );
 
-// Présence
-const Presence = sequelize.define(
-  "presence",
-  {
-    presence_id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
-    },
-    etudiant_id: DataTypes.INTEGER,
-    matiere_id: DataTypes.INTEGER,
-    date_presence: DataTypes.DATEONLY,
-    heure_entree: DataTypes.TIME,
-    heure_sortie: DataTypes.TIME,
-    status: DataTypes.ENUM("P", "A"),
-  },
-  { timestamps: false }
-);
-
+// =========================
 // Absence
+// =========================
 const Absence = sequelize.define(
   "absence",
   {
@@ -145,8 +217,7 @@ const Absence = sequelize.define(
       autoIncrement: true,
     },
     etudiant_id: DataTypes.INTEGER,
-    matiere_id: DataTypes.INTEGER,
-    date_absence: DataTypes.DATEONLY,
+    seance_id: DataTypes.INTEGER,
     motif: DataTypes.ENUM("Maladie", "Evénement familial", "Autres"),
     pieceJust_id: DataTypes.INTEGER,
     observation: DataTypes.TEXT,
@@ -154,7 +225,9 @@ const Absence = sequelize.define(
   { timestamps: false }
 );
 
+// =========================
 // Notification
+// =========================
 const Notification = sequelize.define(
   "notification",
   {
@@ -171,31 +244,56 @@ const Notification = sequelize.define(
   { timestamps: false }
 );
 
+// =========================
 // Log appareil
+// =========================
 const LogAppareil = sequelize.define(
-  "log",
+  "log_appareil",
   {
     log_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    device_id: DataTypes.STRING,
+    user_id: DataTypes.STRING, // ID reçu de l'appareil
     etudiant_id: DataTypes.INTEGER,
+    seance_id: DataTypes.INTEGER,
     matiere_id: DataTypes.INTEGER,
+    event_type: DataTypes.STRING, // "Fingerprint", "Face", etc.
+    direction: DataTypes.STRING, // "IN" ou "OUT"
     timestamp: DataTypes.DATE,
+    raw_data: DataTypes.JSON, // données brutes de l'appareil
   },
   { timestamps: false }
 );
 
+// =========================
 // Associations
+// =========================
 Etudiant.belongsTo(Role, { foreignKey: "role_id" });
+Etudiant.belongsTo(Parcours, { foreignKey: "parcours_id" });
+Etudiant.belongsTo(Mentions, { foreignKey: "mention_id" });
+Etudiant.belongsTo(Niveau, { foreignKey: "niveau_id" });
+
 Matiere.belongsTo(Professeur, { foreignKey: "professeur_id" });
 Matiere.belongsTo(Parcours, { foreignKey: "parcours_id" });
+Matiere.belongsTo(Niveau, { foreignKey: "niveau_id" });
+Matiere.belongsTo(Mentions, { foreignKey: "mention_id" });
+
+Seance.belongsTo(Matiere, { foreignKey: "matiere_id" });
 Presence.belongsTo(Etudiant, { foreignKey: "etudiant_id" });
-Presence.belongsTo(Matiere, { foreignKey: "matiere_id" });
+Presence.belongsTo(Seance, { foreignKey: "seance_id" });
+
 Absence.belongsTo(Etudiant, { foreignKey: "etudiant_id" });
-Absence.belongsTo(Matiere, { foreignKey: "matiere_id" });
+Absence.belongsTo(Seance, { foreignKey: "seance_id" });
 Absence.belongsTo(PieceJustificative, { foreignKey: "pieceJust_id" });
+
 Notification.belongsTo(Etudiant, { foreignKey: "etudiant_id" });
+
 LogAppareil.belongsTo(Etudiant, { foreignKey: "etudiant_id" });
+LogAppareil.belongsTo(Seance, { foreignKey: "seance_id" });
 LogAppareil.belongsTo(Matiere, { foreignKey: "matiere_id" });
 
+// =========================
+// Export
+// =========================
 module.exports = {
   sequelize,
   Admin,
@@ -203,10 +301,13 @@ module.exports = {
   Etudiant,
   Professeur,
   Parcours,
+  Mentions,
+  Niveau,
   Matiere,
-  PieceJustificative,
+  Seance,
   Presence,
   Absence,
+  PieceJustificative,
   Notification,
   LogAppareil,
 };
