@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Mail } from "lucide-react";
 import axios from "axios";
-import { validateEmail } from "../../lib/validation";
+import { validateEmail, validatePassword } from "../../lib/validation";
 import { FormCard } from "../ui/Form-card";
 import { FormInput } from "../ui/Form-input";
 import { PasswordInput } from "../ui/Password-input";
@@ -32,10 +32,10 @@ export const LoginForm = ({
   const validate = () => {
     const newErrors: typeof errors = {};
     const emailError = validateEmail(formData.admin_email);
-    // const passwordError = validatePassword(formData.admin_mdp);
+    const passwordError = validatePassword(formData.admin_mdp);
 
     if (emailError) newErrors.admin_email = emailError;
-    // if (passwordError) newErrors.admin_mdp = passwordError;
+    if (passwordError) newErrors.admin_mdp = passwordError;
 
     return newErrors;
   };

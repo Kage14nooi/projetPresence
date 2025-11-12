@@ -138,33 +138,6 @@ exports.searchAdmins = async (req, res) => {
   }
 };
 
-// 🔐 Connexion admin (via email)
-// exports.loginAdmin = async (req, res) => {
-//   try {
-//     const { admin_email, admin_mdp } = req.body;
-//     const admin = await Admin.findOne({ where: { admin_email } });
-
-//     if (!admin)
-//       return res.status(404).json({ message: "Administrateur non trouvé" });
-
-//     const isValid = await bcrypt.compare(admin_mdp, admin.admin_mdp);
-//     if (!isValid)
-//       return res.status(401).json({ message: "Mot de passe incorrect" });
-
-//     res.json({
-//       message: "Connexion réussie",
-//       admin: {
-//         id: admin.admin_id,
-//         nom: admin.admin_nom,
-//         prenom: admin.admin_prenom,
-//         email: admin.admin_email,
-//       },
-//     });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// };
-
 exports.loginAdmin = async (req, res) => {
   try {
     const { admin_email, admin_mdp } = req.body;
