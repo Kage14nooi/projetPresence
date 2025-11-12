@@ -92,33 +92,52 @@ exports.deleteSeance = async (req, res) => {
   }
 };
 
-// ---------------- TOGGLE ACTIVE ----------------
-
 exports.toggleSeanceActive = async (req, res) => {
   try {
     const seanceId = req.params.id;
+
+    // 🔍 Récupérer la séance + matière associée
     const seance = await Seance.findByPk(seanceId, {
       include: [{ model: Matiere }],
     });
 
-    if (!seance) return res.status(404).json({ error: "Séance non trouvée" });
+    if (!seance) {
+      return res.status(404).json({ error: "Séance non trouvée" });
+    }
 
-    // ⚡ On inverse l’état (active/désactive)
+    // ⚙️ Inverser l’état actif/inactif
     seance.is_active = !seance.is_active;
     await seance.save();
 
-    // ⚙️ Si la séance devient active, on crée automatiquement la fiche de présence
+    // ✅ Si la séance devient active → création des fiches de présence
     if (seance.is_active) {
-      // Récupérer tous les étudiants inscrits à la même matière
+      const matiere = seance.matiere;
+
+      if (!matiere) {
+        return res.status(400).json({
+          error:
+            "Impossible de créer la fiche de présence : aucune matière liée à cette séance.",
+        });
+      }
+
+      // 🎓 Récupérer tous les étudiants du même parcours/mention/niveau
       const etudiants = await Etudiant.findAll({
         where: {
-          parcours_id: seance.matiere.parcours_id,
-          niveau_id: seance.matiere.niveau_id,
-          mention_id: seance.matiere.mentions_id,
+          parcours_id: matiere.parcours_id,
+          mention_id: matiere.mention_id,
+          niveau_id: matiere.niveau_id,
         },
       });
 
-      // Créer une présence "A" (Absent par défaut) pour chaque étudiant
+      if (etudiants.length === 0) {
+        return res.status(200).json({
+          message:
+            "Séance activée, mais aucun étudiant trouvé correspondant aux critères.",
+          seance,
+        });
+      }
+
+      // 🧾 Créer la présence pour chaque étudiant (Absent par défaut)
       for (const etudiant of etudiants) {
         await Presence.findOrCreate({
           where: {
@@ -127,18 +146,21 @@ exports.toggleSeanceActive = async (req, res) => {
           },
           defaults: {
             status: "A", // Absent par défaut
+            heure_entree: null,
+            heure_sortie: null,
           },
         });
       }
-    } else {
-      // 🔕 Si on désactive la séance, on peut (au choix) supprimer les présences associées
-      // await Presence.destroy({ where: { seance_id: seance.seance_id } });
+
+      return res.json({
+        message: `✅ Séance activée (${etudiants.length} fiches de présence créées).`,
+        seance,
+      });
     }
 
-    res.json({
-      message: seance.is_active
-        ? "✅ Séance activée et fiche de présence créée."
-        : "🚫 Séance désactivée.",
+    // 🚫 Si la séance est désactivée
+    return res.json({
+      message: "🚫 Séance désactivée avec succès.",
       seance,
     });
   } catch (err) {

@@ -21,6 +21,7 @@ router.delete("/:id", sceanceController.deleteSeance);
 
 // Activer ou désactiver une séance
 router.patch("/:id/toggle", sceanceController.toggleSeanceActive);
+
 router.get("/presence/:id", sceanceController.getPresenceBySeance);
 
 module.exports = router;

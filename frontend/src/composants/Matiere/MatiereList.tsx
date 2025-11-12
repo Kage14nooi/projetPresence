@@ -21,16 +21,16 @@ const MatiereList: React.FC<MatiereListProps> = ({
               Nom
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Heure Début
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Heure Fin
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Professeur
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Parcours
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Niveau
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Mentions
             </th>
             <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
               Actions
@@ -44,17 +44,17 @@ const MatiereList: React.FC<MatiereListProps> = ({
                 {matiere.matiere_nom}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                {matiere.matiere_heureDebut}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                {matiere.matiere_heureFin}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
                 {matiere.professeur?.professeur_nom}{" "}
                 {matiere.professeur?.professeur_prenom}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 {matiere.parcour?.parcours_nom}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                {matiere.niveau?.niveau_nom}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                {matiere.mention?.mention_nom}
               </td>
 
               <td className="px-6 py-4 whitespace-nowrap flex justify-center gap-3">

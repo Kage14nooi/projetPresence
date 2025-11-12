@@ -139,8 +139,6 @@ const Matiere = sequelize.define(
       autoIncrement: true,
     },
     matiere_nom: DataTypes.STRING,
-    matiere_heureDebut: DataTypes.TIME,
-    matiere_heureFin: DataTypes.TIME,
     professeur_id: DataTypes.INTEGER,
     parcours_id: DataTypes.INTEGER,
     mention_id: DataTypes.INTEGER,
