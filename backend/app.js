@@ -20,6 +20,8 @@ const presenceRoutes = require("./routes/presenceRoutes");
 const absenceRoutes = require("./routes/absenceRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const logRoutes = require("./routes/logRoutes");
+const MentionRoute = require("./routes/MentionRoutes");
+const NiveauRoute = require("./routes/NiveauRoutes");
 const sceancesRoutes = require("./routes/sceanceRoutes");
 
 // Utilisation des routes
@@ -34,6 +36,9 @@ app.use("/api/presences", presenceRoutes);
 app.use("/api/absences", absenceRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/logs", logRoutes);
+
+app.use("/api/mentions", MentionRoute);
+app.use("/api/niveaus", NiveauRoute);
 app.use("/api/sceances", sceancesRoutes);
 
 module.exports = app;

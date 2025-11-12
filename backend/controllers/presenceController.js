@@ -18,9 +18,6 @@ exports.uploadPresence = async (req, res) => {
       status,
     });
 
-    // Enregistrer le log de l'appareil
-    await LogAppareil.create({ etudiant_id, matiere_id, timestamp });
-
     // Envoi temps réel au front
     // misy modif be
     // req.io.emit("new_presence", { etudiant, presence });
