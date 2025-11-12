@@ -36,7 +36,6 @@ app.use("/api/presences", presenceRoutes);
 app.use("/api/absences", absenceRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/logs", logRoutes);
-
 app.use("/api/mentions", MentionRoute);
 app.use("/api/niveaus", NiveauRoute);
 app.use("/api/sceances", sceancesRoutes);
