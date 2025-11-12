@@ -12,6 +12,7 @@ import { FormCard } from "../ui/Form-card";
 import { FormInput } from "../ui/Form-input";
 import { PasswordInput } from "../ui/Password-input";
 import { AuthButton } from "../ui/Button";
+import axios from "axios";
 
 interface SignupFormProps {
   onSwitchToLogin: () => void;
@@ -20,6 +21,7 @@ interface SignupFormProps {
 export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
   const [formData, setFormData] = useState({
     name: "",
+    firstname: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -46,12 +48,20 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
     return newErrors;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const validationErrors = validate();
 
     if (Object.keys(validationErrors).length === 0) {
-      console.log("Inscription avec:", formData);
+      const res = await axios.post(
+        "http://localhost:3001/api/admins/",
+        formData,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      console.log("Inscription avec:", res.data);
       alert("Inscription réussie!");
     } else {
       setErrors(validationErrors);
@@ -69,14 +79,24 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
     <FormCard title="Inscription">
       <form onSubmit={handleSubmit}>
         <FormInput
-          label="Nom complet"
+          label="Nom"
           type="text"
           name="name"
           value={formData.name}
           onChange={handleChange}
           error={errors.name}
           icon={User}
-          placeholder="Jean Dupont"
+          placeholder="Jean"
+        />
+        <FormInput
+          label="Prénom"
+          type="text"
+          name="firstname"
+          value={formData.firstname}
+          onChange={handleChange}
+          error={errors.name}
+          icon={User}
+          placeholder="Dupont"
         />
 
         <FormInput

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Menu,
   Bell,
@@ -43,6 +43,27 @@ interface Alert {
 const Dashboard: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
   const [activeMenu, setActiveMenu] = useState<string>("dashboard");
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const options = {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  };
+  const dateStr = now.toLocaleDateString("fr-FR", options);
+
+  const hours = now.getHours().toString().padStart(2, "0");
+  const minutes = now.getMinutes().toString().padStart(2, "0");
+  const seconds = now.getSeconds().toString().padStart(2, "0");
+  const temeStr = `${hours}h: ${minutes}min : ${seconds}s`;
 
   // 📊 Statistiques principales
   const stats: Stat[] = [
@@ -150,10 +171,8 @@ const Dashboard: React.FC = () => {
 
           <div className="flex items-center space-x-4">
             <div className="text-right">
-              <p className="text-sm font-semibold text-gray-700">
-                Samedi, 08 Nov 2025
-              </p>
-              <p className="text-xs text-gray-500">14:30:00</p>
+              <p className="text-sm font-semibold text-gray-700">{dateStr}</p>
+              <p className="text-xs text-gray-500">{temeStr}</p>
             </div>
             <button className="relative p-2 hover:bg-gray-100 rounded-full transition-colors">
               <Bell className="w-6 h-6 text-gray-600" />
