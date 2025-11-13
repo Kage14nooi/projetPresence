@@ -9,6 +9,8 @@ interface EtudiantModalProps {
   onSubmit: (e: React.FormEvent) => void;
   roles: any[];
   parcours: any[];
+  mentions: any[];
+  niveau: any[];
   errors: any;
 }
 
@@ -20,6 +22,8 @@ const EtudiantModal: React.FC<EtudiantModalProps> = ({
   onSubmit,
   roles,
   parcours,
+  niveau,
+  mentions,
   errors,
 }) => {
   if (!isOpen) return null;
@@ -42,6 +46,8 @@ const EtudiantModal: React.FC<EtudiantModalProps> = ({
           onSubmit={onSubmit}
           roles={roles}
           parcours={parcours}
+          mentions={mentions}
+          niveaux={niveau}
           errors={errors}
         />
       </div>

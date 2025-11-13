@@ -39,7 +39,6 @@ const MatiereList: React.FC<MatiereListProps> = ({
         </thead>
         <tbody className="divide-y divide-gray-200">
           {matieres.map((matiere) => {
-            console.log(matiere);
             return (
               <tr key={matiere.matiere_id}>
                 <td className="px-6 py-4 whitespace-nowrap">
