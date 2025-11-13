@@ -8,5 +8,6 @@ router.get("/:id", presenceController.getPresenceById);
 router.get("/etudiant/:etudiant_id", presenceController.getPresencesByEtudiant);
 router.put("/:id", presenceController.updatePresence);
 router.delete("/:id", presenceController.deletePresence);
+router.get("/sceances/export/:id", presenceController.exportFicheExcel);
 
 module.exports = router;

@@ -14,6 +14,7 @@ import { AuthSystem } from "./composants/authentification/auth-system";
 import ParcoursPage from "./pages/ParcourPage";
 import NiveauPage from "./pages/Niveaupage";
 import MentionPage from "./pages/MentionPage";
+import PresencePage from "./pages/PresencePage";
 import SeancePage from "./pages/SeancePage";
 
 function App() {
@@ -114,6 +115,18 @@ function App() {
                 </Layout>
               ) : (
                 <Navigate to="/mention" />
+              )
+            }
+          />
+          <Route
+            path="/presence"
+            element={
+              isAuthenticated ? (
+                <Layout>
+                  <PresencePage />
+                </Layout>
+              ) : (
+                <Navigate to="/presence" />
               )
             }
           />
