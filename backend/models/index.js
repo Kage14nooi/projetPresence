@@ -274,6 +274,7 @@ Matiere.belongsTo(Professeur, { foreignKey: "professeur_id" });
 Matiere.belongsTo(Parcours, { foreignKey: "parcours_id" });
 Matiere.belongsTo(Niveau, { foreignKey: "niveau_id" });
 Matiere.belongsTo(Mentions, { foreignKey: "mention_id" });
+Matiere.hasMany(Seance, { foreignKey: "matiere_id", as: "seances" });
 
 Seance.belongsTo(Matiere, { foreignKey: "matiere_id" });
 Presence.belongsTo(Etudiant, { foreignKey: "etudiant_id" });

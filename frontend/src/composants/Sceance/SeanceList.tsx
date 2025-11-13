@@ -41,38 +41,47 @@ const SeanceList: React.FC<SeanceListProps> = ({
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">
-          {seances.map((s) => (
-            <tr key={s.seance_id}>
-              <td className="px-6 py-4 whitespace-nowrap">
-                {s.matiere?.matiere_nom}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">{s.date_seance}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{s.heure_debut}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{s.heure_fin}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-center">
-                <input
-                  type="checkbox"
-                  checked={s.is_active}
-                  onChange={() => onToggleActive(s.seance_id)}
-                  className="h-5 w-5 text-blue-600"
-                />
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap flex justify-center gap-3">
-                <button
-                  onClick={() => onEdit(s)}
-                  className="text-blue-600 hover:text-blue-800"
-                >
-                  <Edit2 />
-                </button>
-                <button
-                  onClick={() => onDelete(s.seance_id)}
-                  className="text-red-600 hover:text-red-800"
-                >
-                  <Trash2 />
-                </button>
-              </td>
-            </tr>
-          ))}
+          {seances.map((s) => {
+            console.log("🔍 Séance :", s);
+            return (
+              <tr key={s.seance_id}>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {s.matiere?.matiere_nom}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">{s.date_seance}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{s.heure_debut}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{s.heure_fin}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-center">
+                  <button
+                    onClick={() => onToggleActive(s.seance_id)}
+                    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors duration-300 ${
+                      s.is_active ? "bg-green-500" : "bg-gray-300"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 ${
+                        s.is_active ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap flex justify-center gap-3">
+                  <button
+                    onClick={() => onEdit(s)}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    <Edit2 />
+                  </button>
+                  <button
+                    onClick={() => onDelete(s.seance_id)}
+                    className="text-red-600 hover:text-red-800"
+                  >
+                    <Trash2 />
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
           {seances.length === 0 && (
             <tr>
               <td colSpan={6} className="px-6 py-4 text-center text-gray-500">

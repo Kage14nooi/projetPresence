@@ -17,8 +17,8 @@ import MentionPage from "./pages/MentionPage";
 import SeancePage from "./pages/SeancePage";
 
 function App() {
-  // const isAuthenticated = !!localStorage.getItem("token"); // Vérifie si token existe
-  const isAuthenticated = true; // Vérifie si token existe
+  const isAuthenticated = !!localStorage.getItem("token"); // Vérifie si token existe
+  // const isAuthenticated = true; // Vérifie si token existe
 
   return (
     <Router>

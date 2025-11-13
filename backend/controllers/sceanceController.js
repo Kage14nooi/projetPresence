@@ -1,10 +1,4 @@
-const {
-  Seance,
-  Presence,
-  Etudiant,
-  Matiere,
-  Inscription,
-} = require("../models");
+const { Seance, Presence, Etudiant, Matiere } = require("../models");
 
 // ---------------- CREATE ----------------
 exports.createSeance = async (req, res) => {
@@ -44,7 +38,16 @@ exports.createSeance = async (req, res) => {
 // ---------------- READ ALL ----------------
 exports.getAllSeances = async (req, res) => {
   try {
-    const seances = await Seance.findAll();
+    const seances = await Seance.findAll({
+      include: [
+        {
+          model: Matiere,
+          as: "matiere", // doit correspondre à l'alias défini dans Seance.belongsTo
+          attributes: ["matiere_nom"], // récupère uniquement le nom de la matière
+        },
+      ],
+    });
+
     res.json(seances);
   } catch (err) {
     console.error("❌ ERREUR LORS DU GET SEANCES :", err);
