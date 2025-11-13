@@ -5,6 +5,8 @@ interface MatiereFormProps {
   setFormData: (data: any) => void;
   professeurs: any[];
   parcours: any[];
+  mentions: any[];
+  niveaux: any[];
   errors: any;
   onSubmit: (e: React.FormEvent) => void;
 }
@@ -14,6 +16,8 @@ const MatiereForm: React.FC<MatiereFormProps> = ({
   setFormData,
   professeurs,
   parcours,
+  mentions,
+  niveaux,
   errors,
   onSubmit,
 }) => {
@@ -39,52 +43,7 @@ const MatiereForm: React.FC<MatiereFormProps> = ({
         )}
       </div>
 
-      {/* Heure début et fin */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Heure début *
-          </label>
-          <input
-            type="time"
-            value={formData?.matiere_heureDebut || ""}
-            onChange={(e) =>
-              setFormData({ ...formData, matiere_heureDebut: e.target.value })
-            }
-            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
-              errors?.matiere_heureDebut ? "border-red-500" : "border-gray-300"
-            }`}
-          />
-          {errors?.matiere_heureDebut && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.matiere_heureDebut}
-            </p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Heure fin *
-          </label>
-          <input
-            type="time"
-            value={formData?.matiere_heureFin || ""}
-            onChange={(e) =>
-              setFormData({ ...formData, matiere_heureFin: e.target.value })
-            }
-            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
-              errors?.matiere_heureFin ? "border-red-500" : "border-gray-300"
-            }`}
-          />
-          {errors?.matiere_heureFin && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.matiere_heureFin}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Professeur et Parcours */}
+      {/* Professeur, Parcours, Mention et Niveau */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -93,7 +52,10 @@ const MatiereForm: React.FC<MatiereFormProps> = ({
           <select
             value={formData?.professeur_id || ""}
             onChange={(e) =>
-              setFormData({ ...formData, professeur_id: e.target.value })
+              setFormData({
+                ...formData,
+                professeur_id: parseInt(e.target.value),
+              })
             }
             className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
               errors?.professeur_id ? "border-red-500" : "border-gray-300"
@@ -118,7 +80,10 @@ const MatiereForm: React.FC<MatiereFormProps> = ({
           <select
             value={formData?.parcours_id || ""}
             onChange={(e) =>
-              setFormData({ ...formData, parcours_id: e.target.value })
+              setFormData({
+                ...formData,
+                parcours_id: parseInt(e.target.value),
+              })
             }
             className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
               errors?.parcours_id ? "border-red-500" : "border-gray-300"
@@ -133,6 +98,56 @@ const MatiereForm: React.FC<MatiereFormProps> = ({
           </select>
           {errors?.parcours_id && (
             <p className="text-red-500 text-sm mt-1">{errors.parcours_id}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Mention
+          </label>
+          <select
+            value={formData?.mention_id || ""}
+            onChange={(e) =>
+              setFormData({ ...formData, mention_id: parseInt(e.target.value) })
+            }
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
+              errors?.mention_id ? "border-red-500" : "border-gray-300"
+            }`}
+          >
+            <option value="">Sélectionner une mention</option>
+            {mentions.map((m) => (
+              <option key={m.mention_id} value={m.mention_id}>
+                {m.mention_nom}
+              </option>
+            ))}
+          </select>
+          {errors?.mention_id && (
+            <p className="text-red-500 text-sm mt-1">{errors.mention_id}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Niveau *
+          </label>
+          <select
+            value={formData?.niveau_id || ""}
+            onChange={(e) =>
+              setFormData({ ...formData, niveau_id: parseInt(e.target.value) })
+            }
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
+              errors?.niveau_id ? "border-red-500" : "border-gray-300"
+            }`}
+          >
+            <option value="">Sélectionner un niveau</option>
+            {niveaux.map((n) => (
+              <option key={n.niveau_id} value={n.niveau_id}>
+                {n.niveau_nom}
+              </option>
+            ))}
+          </select>
+          {errors?.niveau_id && (
+            <p className="text-red-500 text-sm mt-1">{errors.niveau_id}</p>
           )}
         </div>
       </div>

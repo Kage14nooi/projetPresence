@@ -1,16 +1,19 @@
 import React from "react";
 import { Edit2, Trash2 } from "lucide-react";
 
-interface MatiereListProps {
+interface SeanceListProps {
+  seances: any[];
   matieres: any[];
-  onEdit: (matiere: any) => void;
+  onEdit: (s: any) => void;
   onDelete: (id: number) => void;
+  onToggleActive: (id: number) => void;
 }
 
-const MatiereList: React.FC<MatiereListProps> = ({
-  matieres,
+const SeanceList: React.FC<SeanceListProps> = ({
+  seances,
   onEdit,
   onDelete,
+  onToggleActive,
 }) => {
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-x-auto">
@@ -18,19 +21,19 @@ const MatiereList: React.FC<MatiereListProps> = ({
         <thead className="bg-gray-50">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Nom
+              Matière
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Professeur
+              Date
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Parcours
+              Heure début
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Niveau
+              Heure fin
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Mentions
+            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Active
             </th>
             <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
               Actions
@@ -38,36 +41,39 @@ const MatiereList: React.FC<MatiereListProps> = ({
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">
-          {matieres.map((matiere) => {
-            console.log(matiere);
+          {seances.map((s) => {
+            console.log("🔍 Séance :", s);
             return (
-              <tr key={matiere.matiere_id}>
+              <tr key={s.seance_id}>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {matiere.matiere_nom}
+                  {s.matiere?.matiere_nom}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {matiere.professeur?.professeur_nom}{" "}
-                  {matiere.professeur?.professeur_prenom}
+                <td className="px-6 py-4 whitespace-nowrap">{s.date_seance}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{s.heure_debut}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{s.heure_fin}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-center">
+                  <button
+                    onClick={() => onToggleActive(s.seance_id)}
+                    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors duration-300 ${
+                      s.is_active ? "bg-green-500" : "bg-gray-300"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 ${
+                        s.is_active ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {matiere.parcour?.parcours_nom}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {matiere.niveau?.niveau_nom}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {matiere.mention?.mention_nom}
-                </td>
-
                 <td className="px-6 py-4 whitespace-nowrap flex justify-center gap-3">
                   <button
-                    onClick={() => onEdit(matiere)}
+                    onClick={() => onEdit(s)}
                     className="text-blue-600 hover:text-blue-800"
                   >
                     <Edit2 />
                   </button>
                   <button
-                    onClick={() => onDelete(matiere.matiere_id)}
+                    onClick={() => onDelete(s.seance_id)}
                     className="text-red-600 hover:text-red-800"
                   >
                     <Trash2 />
@@ -76,10 +82,10 @@ const MatiereList: React.FC<MatiereListProps> = ({
               </tr>
             );
           })}
-          {matieres.length === 0 && (
+          {seances.length === 0 && (
             <tr>
               <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
-                Aucune matière trouvée.
+                Aucune séance trouvée.
               </td>
             </tr>
           )}
@@ -89,4 +95,4 @@ const MatiereList: React.FC<MatiereListProps> = ({
   );
 };
 
-export default MatiereList;
+export default SeanceList;

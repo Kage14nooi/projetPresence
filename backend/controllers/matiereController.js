@@ -2,16 +2,37 @@ const {
   Matiere,
   Professeur,
   Parcours,
-  Niveau,
-  Mentions,
   Presence,
   Etudiant,
   Seance,
+  Niveau,
+  Mentions,
 } = require("../models");
 
 // ---------------- CREATE ----------------
+
 exports.createMatiere = async (req, res) => {
   try {
+    const { matiere_nom, professeur_id, parcours_id, mention_id, niveau_id } =
+      req.body;
+
+    // Vérifier les champs obligatoires
+    if (!matiere_nom || !professeur_id || !parcours_id || !niveau_id) {
+      return res
+        .status(400)
+        .json({ message: "Champs obligatoires manquants." });
+    }
+
+    // Vérifier si la matière existe déjà
+    const existing = await Matiere.findOne({
+      where: { matiere_nom, professeur_id, parcours_id, mention_id, niveau_id },
+    });
+
+    if (existing) {
+      return res.status(409).json({ message: "Cette matière existe déjà." });
+    }
+
+    // Création de la matière
     const matiere = await Matiere.create(req.body);
     res.status(201).json(matiere);
   } catch (err) {
@@ -27,16 +48,20 @@ exports.createMatiere = async (req, res) => {
 exports.getMatieres = async (req, res) => {
   try {
     const matieres = await Matiere.findAll({
-      include: [Professeur, Parcours, Mentions, Niveau],
-      order: [["matiere_nom", "ASC"]],
+      include: [
+        { model: Seance, as: "seances" }, // séances associées
+        { model: Professeur }, // professeur associé
+        { model: Parcours }, // parcours associé
+        { model: Niveau }, // niveau associé
+        { model: Mentions }, // mention associée
+      ],
     });
     res.json(matieres);
-  } catch (err) {
-    console.error("❌ ERREUR LORS DU GET MATIERES :", err);
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error("Erreur getMatieres:", error);
+    res.status(500).json({ message: "Erreur lors du chargement des matières" });
   }
 };
-
 // ---------------- READ BY ID ----------------
 exports.getMatiereById = async (req, res) => {
   try {
