@@ -14,10 +14,11 @@ import { AuthSystem } from "./composants/authentification/auth-system";
 import ParcoursPage from "./pages/ParcourPage";
 import NiveauPage from "./pages/Niveaupage";
 import MentionPage from "./pages/MentionPage";
+import PresencePage from "./pages/PresencePage";
 
 function App() {
-  // const isAuthenticated = !!localStorage.getItem("token"); // Vérifie si token existe
-  const isAuthenticated = true; // Vérifie si token existe
+  const isAuthenticated = !!localStorage.getItem("token"); // Vérifie si token existe
+  // const isAuthenticated = true; // Vérifie si token existe
 
   return (
     <Router>
@@ -113,6 +114,18 @@ function App() {
                 </Layout>
               ) : (
                 <Navigate to="/mention" />
+              )
+            }
+          />
+          <Route
+            path="/presence"
+            element={
+              isAuthenticated ? (
+                <Layout>
+                  <PresencePage />
+                </Layout>
+              ) : (
+                <Navigate to="/presence" />
               )
             }
           />

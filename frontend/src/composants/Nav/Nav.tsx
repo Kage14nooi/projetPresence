@@ -66,7 +66,7 @@ const NavBar: React.FC<NavBarProps> = ({
       id: "presence",
       label: "Présences",
       icon: ClipboardList,
-      path: "/presences",
+      path: "/presence",
     },
     { id: "absences", label: "Absences", icon: Calendar, path: "/absences" },
     {

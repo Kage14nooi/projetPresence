@@ -1,5 +1,6 @@
 const { Presence, Etudiant, LogAppareil } = require("../models");
 const io = require("../server"); // Assurez-vous que server.js exporte io
+const excelJS = require("exceljs"); // npm install exceljs
 
 // ➕ Ajouter / recevoir une présence depuis le Fingerprint Clock
 exports.uploadPresence = async (req, res) => {
@@ -92,5 +93,60 @@ exports.deletePresence = async (req, res) => {
     res.json({ message: "Présence supprimée avec succès" });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+exports.exportFicheExcel = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Récupérer toutes les présences de la séance
+    const presences = await Presence.findAll({
+      where: { seance_id: id },
+      include: Etudiant,
+    });
+
+    // Créer le workbook
+    const workbook = new excelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Fiche Présence");
+
+    // Colonnes
+    worksheet.columns = [
+      { header: "ID Étudiant", key: "etudiant_id", width: 15 },
+      { header: "Nom Étudiant", key: "nom", width: 25 },
+      { header: "Prénom Étudiant", key: "prenom", width: 25 },
+      { header: "Heure Entrée", key: "heure_entree", width: 15 },
+      { header: "Heure Sortie", key: "heure_sortie", width: 15 },
+      { header: "Statut", key: "status", width: 10 },
+    ];
+
+    // Ajouter les lignes
+    presences.forEach((p) => {
+      worksheet.addRow({
+        etudiant_id: p.etudiant_id,
+        nom: p.etudiant?.etudiant_nom || "",
+        prenom: p.etudiant?.etudiant_prenom || "",
+        heure_entree: p.heure_entree || "",
+        heure_sortie: p.heure_sortie || "",
+        status: p.status,
+      });
+    });
+
+    // Headers pour l'export
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=fiche_presence_seance_${id}.xlsx`
+    );
+
+    // Envoyer le fichier Excel au client
+    await workbook.xlsx.write(res);
+    res.status(200).end();
+  } catch (error) {
+    console.error("Erreur export Excel :", error);
+    res.status(500).json({ error: "Impossible d'exporter la fiche" });
   }
 };

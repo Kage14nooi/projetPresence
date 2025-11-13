@@ -177,20 +177,19 @@ exports.getPresenceBySeance = async (req, res) => {
       where: { seance_id: seanceId },
       include: [
         {
-          model: Etudiant,
-          attributes: ["etudiant_id", "etudiant_nom", "etudiant_prenom"],
+          model: Etudiant, // ✅ Inclut TOUS les champs de l'étudiant
         },
         {
-          model: Seance,
-          attributes: ["date_seance", "heure_debut", "heure_fin"],
+          model: Seance, // ✅ Inclut TOUS les champs de la séance
         },
       ],
     });
 
-    if (!presences.length)
+    if (!presences.length) {
       return res
         .status(404)
         .json({ message: "Aucune fiche de présence trouvée." });
+    }
 
     res.json(presences);
   } catch (err) {
