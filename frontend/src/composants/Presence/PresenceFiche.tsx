@@ -1,11 +1,17 @@
-// src/components/PresenceFiche/PresenceFiche.tsx
 import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
 import * as XLSX from "xlsx";
-import type { Seance } from "../../types/types";
-import { presenceService } from "../../services/PresenceService";
-import type { FichePresence } from "../../services/PresenceService";
-import type { Presence } from "../../types/types";
+import type { Seance, Presence } from "../../types/types";
+import {
+  presenceService,
+  type FichePresence,
+} from "../../services/PresenceService";
+import {
+  HiOutlineCalendar,
+  HiOutlineClock,
+  HiOutlineDocumentText,
+} from "react-icons/hi";
+
 interface PresenceFicheProps {
   seance: Seance;
 }
@@ -17,7 +23,6 @@ const PresenceFiche: React.FC<PresenceFicheProps> = ({ seance }) => {
   const [excelData, setExcelData] = useState<any[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
 
-  // Récupération des données
   useEffect(() => {
     const fetchFiche = async () => {
       setLoading(true);
@@ -25,8 +30,6 @@ const PresenceFiche: React.FC<PresenceFicheProps> = ({ seance }) => {
         const presencesRaw = await presenceService.getFichePresence(
           seance.seance_id
         );
-        console.log("Données brutes des présences :", presencesRaw.presences);
-        // 🔹 Utilisation de etudiant_matricule à la place de etudiant_id
         const ficheFormatted: FichePresence = {
           seance: presencesRaw.seance,
           presences: presencesRaw.presences.map(
@@ -38,7 +41,6 @@ const PresenceFiche: React.FC<PresenceFicheProps> = ({ seance }) => {
             })
           ),
         };
-
         setFiche(ficheFormatted);
       } catch (err) {
         console.error(err);
@@ -49,12 +51,10 @@ const PresenceFiche: React.FC<PresenceFicheProps> = ({ seance }) => {
     fetchFiche();
   }, [seance]);
 
-  // Filtrer les présences selon le filtre choisi
   const presencesToDisplay =
     fiche?.presences &&
     presenceService.filterPresences(fiche.presences, statusFilter);
 
-  // Prévisualisation Excel filtrée
   const handlePreviewExcel = () => {
     const presencesFiltered = presencesToDisplay || [];
     const excelRows = presencesFiltered.map((p) => ({
@@ -64,12 +64,10 @@ const PresenceFiche: React.FC<PresenceFicheProps> = ({ seance }) => {
       "Heure sortie": p.heure_sortie || "-",
       Statut: p.status === "P" ? "Présent" : "Absent",
     }));
-
     setExcelData(excelRows);
     setModalOpen(true);
   };
 
-  // Télécharger Excel filtré
   const handleDownloadExcel = () => {
     const presencesFiltered = presencesToDisplay || [];
     const excelRows = presencesFiltered.map((p) => ({
@@ -89,87 +87,137 @@ const PresenceFiche: React.FC<PresenceFicheProps> = ({ seance }) => {
   if (!fiche) return <p>Aucune donnée de présence.</p>;
 
   return (
-    <div className="mt-4 bg-white p-4 rounded-lg shadow">
-      <h3 className="text-lg font-bold mb-2">
-        Fiche de présence - {seance.date_seance} ({seance.heure_debut} -{" "}
-        {seance.heure_fin})
-      </h3>
+    <div className="mt-4 bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+      {/* Header avec icônes */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 border-b pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-6">
+          <h3 className="text-2xl font-bold text-gray-800 flex items-center space-x-2">
+            <HiOutlineDocumentText className="text-blue-600" />
+            <span>Fiche de présence</span>
+          </h3>
 
+          <div className="flex items-center space-x-4 mt-2 sm:mt-0 text-gray-600 text-sm">
+            <div className="flex items-center space-x-1">
+              <HiOutlineCalendar />
+              <span>{seance.date_seance}</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <HiOutlineClock />
+              <span>
+                {seance.heure_debut} - {seance.heure_fin}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Boutons Excel */}
+        <div className="flex space-x-2 mt-2 sm:mt-0">
+          <button
+            onClick={handlePreviewExcel}
+            className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition flex items-center space-x-1"
+          >
+            <HiOutlineDocumentText />
+            <span>Prévisualiser Excel</span>
+          </button>
+          <button
+            onClick={handleDownloadExcel}
+            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition flex items-center space-x-1"
+          >
+            <HiOutlineDocumentText />
+            <span>Télécharger Excel</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Filtres */}
       <div className="flex space-x-2 mb-4">
         {["ALL", "P", "A"].map((s) => (
           <button
             key={s}
             onClick={() => setStatusFilter(s as any)}
-            className={`px-3 py-1 rounded ${
-              statusFilter === s ? "bg-blue-600 text-white" : "bg-gray-200"
+            className={`px-3 py-1 rounded-full font-medium ${
+              statusFilter === s
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >
             {s === "ALL" ? "Tous" : s === "P" ? "Présents" : "Absents"}
           </button>
         ))}
-        <button
-          onClick={handlePreviewExcel}
-          className="ml-auto px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700"
-        >
-          Prévisualiser Excel
-        </button>
-        <button
-          onClick={handleDownloadExcel}
-          className="ml-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-        >
-          Télécharger Excel
-        </button>
       </div>
 
-      <table className="w-full border border-gray-200">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border px-2 py-1">Matricule</th>
-            <th className="border px-2 py-1">Étudiant</th>
-            <th className="border px-2 py-1">Heure entrée</th>
-            <th className="border px-2 py-1">Heure sortie</th>
-            <th className="border px-2 py-1">Statut</th>
-          </tr>
-        </thead>
-        <tbody>
-          {presencesToDisplay?.map((p) => (
-            <tr key={p.presence_id}>
-              <td className="border px-2 py-1">{p.etudiant_matricule}</td>
-              <td className="border px-2 py-1">
-                {p.etudiant_nom} {p.etudiant_prenom}
-              </td>
-              <td className="border px-2 py-1">{p.heure_entree || "-"}</td>
-              <td className="border px-2 py-1">{p.heure_sortie || "-"}</td>
-              <td className="border px-2 py-1 text-center">
-                {p.status === "P" ? "Présent" : "Absent"}
-              </td>
+      {/* Tableau moderne */}
+      <div className="overflow-x-auto rounded-lg border border-gray-200">
+        <table className="min-w-full divide-y divide-gray-200 text-left">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-4 py-2 text-sm font-semibold text-gray-700">
+                Matricule
+              </th>
+              <th className="px-4 py-2 text-sm font-semibold text-gray-700">
+                Étudiant
+              </th>
+              <th className="px-4 py-2 text-sm font-semibold text-gray-700">
+                Heure entrée
+              </th>
+              <th className="px-4 py-2 text-sm font-semibold text-gray-700">
+                Heure sortie
+              </th>
+              <th className="px-4 py-2 text-sm font-semibold text-gray-700 text-center">
+                Statut
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {presencesToDisplay?.map((p) => (
+              <tr key={p.presence_id} className="hover:bg-blue-50 transition">
+                <td className="px-4 py-2 text-sm">{p.etudiant_matricule}</td>
+                <td className="px-4 py-2 text-sm">
+                  {p.etudiant_nom} {p.etudiant_prenom}
+                </td>
+                <td className="px-4 py-2 text-sm">{p.heure_entree || "-"}</td>
+                <td className="px-4 py-2 text-sm">{p.heure_sortie || "-"}</td>
+                <td
+                  className={`px-4 py-2 text-sm text-center font-semibold ${
+                    p.status === "P" ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {p.status === "P" ? "Présent" : "Absent"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-      {/* Modal de prévisualisation Excel */}
+      {/* Modal Excel */}
       <Modal
         isOpen={modalOpen}
         onRequestClose={() => setModalOpen(false)}
         contentLabel="Prévisualisation Excel"
-        className="bg-white p-4 rounded shadow-lg max-w-4xl mx-auto mt-20"
+        className="bg-white p-6 rounded-lg shadow-lg max-w-4xl mx-auto mt-20 overflow-auto"
         overlayClassName="fixed inset-0 bg-black bg-opacity-50"
       >
-        <h2 className="text-lg font-bold mb-2">Prévisualisation Excel</h2>
+        <h2 className="text-xl font-bold mb-4 flex items-center space-x-2">
+          <HiOutlineDocumentText />
+          <span>Prévisualisation Excel</span>
+        </h2>
         <button
-          className="mb-2 px-2 py-1 bg-red-500 text-white rounded"
+          className="mb-4 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 flex items-center space-x-1"
           onClick={() => setModalOpen(false)}
         >
-          Fermer
+          <span>Fermer</span>
         </button>
-        <div className="overflow-x-auto max-h-96">
-          <table className="w-full border border-gray-300">
-            <thead>
+        <div className="overflow-x-auto max-h-[60vh]">
+          <table className="min-w-full border border-gray-300 divide-y divide-gray-200">
+            <thead className="bg-gray-100">
               <tr>
                 {excelData[0] &&
                   Object.keys(excelData[0]).map((key) => (
-                    <th key={key} className="border px-2 py-1">
+                    <th
+                      key={key}
+                      className="px-3 py-2 text-left text-sm font-semibold text-gray-700"
+                    >
                       {key}
                     </th>
                   ))}
@@ -177,9 +225,12 @@ const PresenceFiche: React.FC<PresenceFicheProps> = ({ seance }) => {
             </thead>
             <tbody>
               {excelData.map((row, i) => (
-                <tr key={i}>
+                <tr
+                  key={i}
+                  className="hover:bg-blue-50 transition duration-150"
+                >
                   {Object.values(row).map((val, j) => (
-                    <td key={j} className="border px-2 py-1">
+                    <td key={j} className="px-3 py-2 text-sm">
                       {val !== null && val !== undefined ? val.toString() : "-"}
                     </td>
                   ))}
