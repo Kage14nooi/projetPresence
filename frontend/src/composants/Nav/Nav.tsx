@@ -28,8 +28,9 @@ interface MenuItem {
   id: string;
   label: string;
   icon: React.ElementType;
-  path: string;
+  path?: string;
   badge?: number;
+  children?: MenuItem[];
 }
 
 const NavBar: React.FC<NavBarProps> = ({
@@ -39,7 +40,7 @@ const NavBar: React.FC<NavBarProps> = ({
   setActiveMenu,
 }) => {
   const navigate = useNavigate();
-  // Récupération des infos depuis localStorage
+
   const userData = JSON.parse(localStorage.getItem("user") || "{}");
   const userName = userData.nom || "Utilisateur";
   const userEmail = userData.email || "email@example.com";
@@ -52,16 +53,6 @@ const NavBar: React.FC<NavBarProps> = ({
       path: "/dashboard",
     },
     { id: "students", label: "Étudiants", icon: Users, path: "/etudiants" },
-    {
-      id: "professors",
-      label: "Professeurs",
-      icon: GraduationCap,
-      path: "/professeurs",
-    },
-    { id: "subjects", label: "Matières", icon: BookOpen, path: "/matieres" },
-    { id: "parcours", label: "Parcours", icon: BookOpen, path: "/parcours" },
-    { id: "niiveau", label: "Niveau", icon: BookOpen, path: "/niveau" },
-    { id: "mention", label: "Mention", icon: BookOpen, path: "/mention" },
     { id: "seance", label: "Seance", icon: BookOpen, path: "/seance" },
     {
       id: "presence",
@@ -83,38 +74,56 @@ const NavBar: React.FC<NavBarProps> = ({
       path: "/notifications",
       badge: 12,
     },
-    { id: "reports", label: "Rapports", icon: BarChart3, path: "/rapports" },
+    // { id: "reports", label: "Rapports", icon: BarChart3, path: "/rapports" },
     {
       id: "settings",
       label: "Paramètres",
       icon: Settings,
-      path: "/parametres",
+      children: [
+        { id: "matiere", label: "Matières", icon: BookOpen, path: "/matieres" },
+        {
+          id: "niveau",
+          label: "Niveaux",
+          icon: GraduationCap,
+          path: "/niveau",
+        },
+        {
+          id: "parcours",
+          label: "Parcours",
+          icon: BookOpen,
+          path: "/parcours",
+        },
+        { id: "mention", label: "Mentions", icon: BookOpen, path: "/mention" },
+        {
+          id: "professeur",
+          label: "Professeurs",
+          icon: GraduationCap,
+          path: "/professeurs",
+        },
+      ],
     },
   ];
 
   const handleDeconnect = () => {
-    // Supprime le token JWT du stockage local
     localStorage.removeItem("token");
-
-    // (Optionnel) Supprime aussi les infos de l'admin stockées localement
     localStorage.removeItem("admin");
-
-    // Redirige vers la page de connexion
     window.location.href = "/login";
   };
 
   const handleMenuClick = (item: MenuItem) => {
+    if (item.path) {
+      navigate(item.path);
+    }
     setActiveMenu(item.id);
-    navigate(item.path);
   };
 
   return (
     <aside
       className={`${
         sidebarOpen ? "w-64" : "w-20"
-      } bg-gradient-to-b from-indigo-900 via-indigo-800 to-indigo-900 text-white transition-all duration-300 ease-in-out flex flex-col shadow-2xl`}
+      } bg-gradient-to-b from-indigo-900 via-indigo-800 to-indigo-900 text-white transition-all duration-300 flex flex-col shadow-2xl`}
     >
-      {/* Header avec le bouton Menu */}
+      {/* Header */}
       <div className="p-4 flex items-center justify-between border-b border-indigo-700">
         <div className="flex items-center space-x-3">
           {!sidebarOpen && (
@@ -153,40 +162,58 @@ const NavBar: React.FC<NavBarProps> = ({
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeMenu === item.id;
+          const hasChildren = item.children && item.children.length > 0;
+
           return (
-            <button
-              key={item.id}
-              onClick={() => handleMenuClick(item)}
-              className={`w-full flex items-center px-4 py-3 mb-1 transition-all duration-200 group relative ${
-                isActive
-                  ? "bg-gradient-to-r from-blue-500 to-indigo-500 shadow-lg"
-                  : "hover:bg-indigo-700/50"
-              }`}
-            >
-              <Icon
-                className={`w-5 h-5 ${sidebarOpen ? "mr-3" : "mx-auto"} ${
-                  isActive ? "scale-110" : ""
-                } transition-transform`}
-              />
-              {sidebarOpen && (
-                <>
-                  <span className="flex-1 text-left font-medium">
-                    {item.label}
-                  </span>
-                  {item.badge && (
-                    <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                      {item.badge}
+            <div key={item.id}>
+              {/* Menu parent */}
+              <button
+                onClick={() => handleMenuClick(item)}
+                className={`w-full flex items-center px-4 py-3 mb-1 transition-all duration-200 group relative ${
+                  isActive
+                    ? "bg-gradient-to-r from-blue-500 to-indigo-500 shadow-lg"
+                    : "hover:bg-indigo-700/50"
+                }`}
+              >
+                <Icon
+                  className={`w-5 h-5 ${
+                    sidebarOpen ? "mr-3" : "mx-auto"
+                  } transition-transform`}
+                />
+                {sidebarOpen && (
+                  <>
+                    <span className="flex-1 text-left font-medium">
+                      {item.label}
                     </span>
-                  )}
-                  {isActive && <ChevronRight className="w-4 h-4 ml-2" />}
-                </>
+                    {hasChildren && <ChevronRight className="w-4 h-4 ml-2" />}
+                  </>
+                )}
+              </button>
+
+              {/* Sous-menus */}
+              {hasChildren && isActive && sidebarOpen && (
+                <div className="ml-8 flex flex-col">
+                  {item.children!.map((child) => {
+                    const ChildIcon = child.icon;
+                    const isChildActive = activeMenu === child.id;
+                    return (
+                      <button
+                        key={child.id}
+                        onClick={() => handleMenuClick(child)}
+                        className={`w-full flex items-center px-4 py-2 mb-1 text-sm transition-all duration-200 ${
+                          isChildActive
+                            ? "bg-indigo-600 rounded-lg"
+                            : "hover:bg-indigo-700/50"
+                        }`}
+                      >
+                        <ChildIcon className="w-4 h-4 mr-2" />
+                        <span>{child.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               )}
-              {!sidebarOpen && item.badge && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold">
-                  {item.badge}
-                </span>
-              )}
-            </button>
+            </div>
           );
         })}
       </nav>

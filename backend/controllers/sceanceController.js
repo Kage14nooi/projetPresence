@@ -203,3 +203,37 @@ exports.getPresenceBySeance = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+// controllers/seanceController.js
+exports.getSeanceAbsents = async (req, res) => {
+  try {
+    const seanceId = req.params.id;
+
+    const presences = await Presence.findAll({
+      where: { seance_id: seanceId, status: "A" }, // uniquement les absents
+      include: [
+        {
+          model: Etudiant,
+          as: "etudiant", // ⚠️ doit correspondre à l'alias
+          attributes: [
+            "etudiant_id",
+            "etudiant_nom",
+            "etudiant_prenom",
+            "etudiant_mail",
+          ],
+        },
+      ],
+    });
+
+    if (!presences.length) {
+      return res.status(404).json({ message: "Aucun absent trouvé." });
+    }
+
+    // renvoyer uniquement les infos étudiant
+    const absents = presences.map((p) => p.etudiant);
+
+    res.json(absents);
+  } catch (err) {
+    console.error("❌ Erreur lors de la récupération des absents :", err);
+    res.status(500).json({ error: err.message });
+  }
+};

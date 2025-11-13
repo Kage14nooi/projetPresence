@@ -24,4 +24,6 @@ router.patch("/:id/toggle", sceanceController.toggleSeanceActive);
 
 router.get("/presence/:id", sceanceController.getPresenceBySeance);
 
+router.get("/absences/:id", sceanceController.getSeanceAbsents);
+
 module.exports = router;

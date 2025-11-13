@@ -199,6 +199,7 @@ const PieceJustificative = sequelize.define(
       autoIncrement: true,
     },
     pieceJust_description: DataTypes.STRING,
+    pieceJust_file: DataTypes.STRING,
   },
   { timestamps: false }
 );

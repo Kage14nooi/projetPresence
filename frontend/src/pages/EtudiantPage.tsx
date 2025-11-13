@@ -7,6 +7,8 @@ import {
 } from "../services/etudiantService";
 import { getRoles } from "../services/roleService";
 import { getParcours } from "../services/parcoursService";
+import { getNiveau } from "../services/NiveauService";
+import { getMention } from "../services/MentionService";
 import EtudiantList from "../composants/Etudiant/EtudiantList";
 import EtudiantModal from "../composants/Etudiant/EtudiantModal";
 import { UserPlus, Users } from "lucide-react";
@@ -16,11 +18,13 @@ const initialFormData = {
   etudiant_nom: "",
   etudiant_prenom: "",
   etudiant_matricule: "",
-  etudiant_niveau: "",
-  etudiant_parcours: "",
   etudiant_mail: "",
   etudiant_tel: "",
+  mention_id: "",
+  parcours_id: "",
+  niveau_id: "",
   role_id: "",
+  device_user_id: "",
 };
 
 const EtudiantPage: React.FC = () => {
@@ -30,6 +34,8 @@ const EtudiantPage: React.FC = () => {
   const [roles, setRoles] = useState<any[]>([]);
   const [errors, setErrors] = useState<any>({});
   const [parcours, setParcours] = useState<any[]>([]);
+  const [mentions, setMentions] = useState<any[]>([]);
+  const [niveau, setNiveau] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Récupération des étudiants
@@ -53,6 +59,22 @@ const EtudiantPage: React.FC = () => {
       console.error("Erreur fetch parcours:", err);
     }
   };
+  const fetchMentions = async () => {
+    try {
+      const data = await getMention();
+      setMentions(data);
+    } catch (err) {
+      console.error("Erreur fetch parcours:", err);
+    }
+  };
+  const fetchNiveau = async () => {
+    try {
+      const data = await getNiveau();
+      setNiveau(data);
+    } catch (err) {
+      console.error("Erreur fetch parcours:", err);
+    }
+  };
 
   // Récupération des rôles
   const fetchRoles = async () => {
@@ -69,6 +91,8 @@ const EtudiantPage: React.FC = () => {
     fetchEtudiants();
     fetchRoles();
     fetchParcours();
+    fetchMentions();
+    fetchNiveau();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,8 +106,9 @@ const EtudiantPage: React.FC = () => {
     if (!formData.etudiant_matricule)
       newErrors.etudiant_matricule = "Le matricule est requis";
     if (!formData.role_id) newErrors.role_id = "Le rôle est requis";
-    if (!formData.etudiant_parcours)
-      newErrors.etudiant_parcours = "Le parcours est requis";
+    if (!formData.parcours_id) newErrors.parcours_id = "Le parcours est requis";
+    if (!formData.niveau_id) newErrors.niveau_id = "Le niveau est requis";
+    if (!formData.mention_id) newErrors.mention_id = "La mention est requise";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -187,6 +212,8 @@ const EtudiantPage: React.FC = () => {
         onSubmit={handleSubmit}
         roles={roles}
         parcours={parcours}
+        mentions={mentions}
+        niveau={niveau}
         errors={errors}
       />
     </div>
