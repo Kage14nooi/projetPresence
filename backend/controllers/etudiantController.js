@@ -5,6 +5,9 @@ const {
   Presence,
   Absence,
   LogAppareil,
+  Parcours,
+  Niveau,
+  Mentions,
 } = require("../models");
 
 // ---------------- CREATE ----------------
@@ -27,9 +30,18 @@ exports.createEtudiant = async (req, res) => {
 };
 
 // ---------------- READ ALL ----------------
+
 exports.getEtudiants = async (req, res) => {
   try {
-    const etudiants = await Etudiant.findAll({ include: Role });
+    const etudiants = await Etudiant.findAll({
+      include: [
+        { model: Role }, // Rôle de l'étudiant
+        { model: Parcours }, // Parcours
+        { model: Niveau }, // Niveau
+        { model: Mentions }, // Mention
+      ],
+    });
+
     res.json(etudiants);
   } catch (err) {
     console.error("❌ ERREUR LORS DU GET ETUDIANTS :", err);

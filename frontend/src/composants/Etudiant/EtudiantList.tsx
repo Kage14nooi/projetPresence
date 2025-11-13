@@ -41,7 +41,10 @@ const EtudiantList: React.FC<EtudiantListProps> = ({
         e.etudiant_prenom?.toLowerCase().includes(searchLower) ||
         e.etudiant_matricule?.toLowerCase().includes(searchLower) ||
         e.etudiant_mail?.toLowerCase().includes(searchLower) ||
-        e.etudiant_parcours?.toLowerCase().includes(searchLower)
+        e.Parcours?.parcours_nom?.toLowerCase().includes(searchLower) ||
+        e.Niveau?.niveau_nom?.toLowerCase().includes(searchLower) ||
+        e.Mentions?.mention_nom?.toLowerCase().includes(searchLower) ||
+        e.Role?.role_nom?.toLowerCase().includes(searchLower)
       );
     });
   };
@@ -54,27 +57,22 @@ const EtudiantList: React.FC<EtudiantListProps> = ({
   const endIndex = startIndex + itemsPerPage;
   const currentEtudiants = filteredEtudiants.slice(startIndex, endIndex);
 
-  // Réinitialiser à la page 1 quand on change le nombre d'items par page
   const handleItemsPerPageChange = (value: number) => {
     setItemsPerPage(value);
     setCurrentPage(1);
   };
 
-  // Réinitialiser à la page 1 quand on recherche
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
     setCurrentPage(1);
   };
 
-  // Générer les numéros de page à afficher
   const getPageNumbers = () => {
-    const pages = [];
+    const pages: (number | string)[] = [];
     const maxVisiblePages = 5;
 
     if (totalPages <= maxVisiblePages) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
       if (currentPage <= 3) {
         for (let i = 1; i <= 4; i++) pages.push(i);
@@ -98,7 +96,7 @@ const EtudiantList: React.FC<EtudiantListProps> = ({
 
   return (
     <div className="flex flex-col min-h-full">
-      {/* En-tête avec statistiques et recherche */}
+      {/* En-tête */}
       <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-t-xl p-6 shadow-lg">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
@@ -126,7 +124,7 @@ const EtudiantList: React.FC<EtudiantListProps> = ({
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
-            placeholder="Rechercher par nom, prénom, matricule, email..."
+            placeholder="Rechercher par nom, prénom, matricule, email, parcours..."
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full pl-12 pr-4 py-3 rounded-lg bg-white/90 backdrop-blur-sm border-2 border-white/20 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
@@ -134,7 +132,7 @@ const EtudiantList: React.FC<EtudiantListProps> = ({
         </div>
       </div>
 
-      {/* Conteneur avec défilement */}
+      {/* Table */}
       <div className="flex-1 bg-white overflow-hidden">
         <div className="overflow-x-auto flex-1">
           <table className="w-full">
@@ -153,6 +151,12 @@ const EtudiantList: React.FC<EtudiantListProps> = ({
                   Parcours
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  Mentions
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  Rôle
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                   Contact
                 </th>
                 <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
@@ -163,7 +167,7 @@ const EtudiantList: React.FC<EtudiantListProps> = ({
             <tbody className="divide-y divide-gray-100">
               {currentEtudiants.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-12">
+                  <td colSpan={8} className="p-12">
                     <div className="text-center">
                       <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
                         <GraduationCap className="w-8 h-8 text-gray-400" />
@@ -185,21 +189,18 @@ const EtudiantList: React.FC<EtudiantListProps> = ({
                 currentEtudiants.map((e, i) => (
                   <tr
                     key={e.etudiant_id}
-                    className={`
-                      transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 
-                      ${i % 2 === 0 ? "bg-white" : "bg-gray-50/50"}
-                    `}
+                    className={`transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 ${
+                      i % 2 === 0 ? "bg-white" : "bg-gray-50/50"
+                    }`}
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center">
                         <div className="w-20 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">
                           {e.etudiant_matricule?.substring(0, 10) || "??"}
                         </div>
-                        {/* <span className="ml-3 font-semibold text-gray-900">
-                          {e.etudiant_matricule}
-                        </span> */}
                       </div>
                     </td>
+
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
                         <span className="font-semibold text-gray-900">
@@ -207,17 +208,32 @@ const EtudiantList: React.FC<EtudiantListProps> = ({
                         </span>
                       </div>
                     </td>
+
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
                         <BookOpen className="w-3 h-3 mr-1" />
-                        {e.etudiant_niveau || "N/A"}
+                        {e.niveau?.niveau_nom || "N/A"}
                       </span>
                     </td>
+
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
-                        {e.etudiant_parcours || "N/A"}
+                        {e.parcour?.parcours_nom || "N/A"}
                       </span>
                     </td>
+
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                        {e.mention?.mention_nom || "N/A"}
+                      </span>
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                        {e.role?.role_type || "N/A"}
+                      </span>
+                    </td>
+
                     <td className="px-6 py-4">
                       <div className="flex flex-col space-y-1">
                         {e.etudiant_mail && (
@@ -236,6 +252,7 @@ const EtudiantList: React.FC<EtudiantListProps> = ({
                         )}
                       </div>
                     </td>
+
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center space-x-2">
                         <button
@@ -262,11 +279,10 @@ const EtudiantList: React.FC<EtudiantListProps> = ({
         </div>
       </div>
 
-      {/* Pagination moderne */}
+      {/* Pagination */}
       {filteredEtudiants.length > 0 && (
         <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-t border-gray-200 rounded-b-xl">
           <div className="flex items-center justify-between">
-            {/* Informations et sélecteur d'items par page */}
             <div className="flex items-center space-x-4">
               <p className="text-sm text-gray-600">
                 Affichage de{" "}
@@ -302,9 +318,7 @@ const EtudiantList: React.FC<EtudiantListProps> = ({
               </div>
             </div>
 
-            {/* Contrôles de pagination */}
             <div className="flex items-center space-x-2">
-              {/* Première page */}
               <button
                 onClick={() => setCurrentPage(1)}
                 disabled={currentPage === 1}
@@ -313,8 +327,6 @@ const EtudiantList: React.FC<EtudiantListProps> = ({
               >
                 <ChevronsLeft className="w-4 h-4 text-gray-600" />
               </button>
-
-              {/* Page précédente */}
               <button
                 onClick={() => setCurrentPage(currentPage - 1)}
                 disabled={currentPage === 1}
@@ -323,8 +335,6 @@ const EtudiantList: React.FC<EtudiantListProps> = ({
               >
                 <ChevronLeft className="w-4 h-4 text-gray-600" />
               </button>
-
-              {/* Numéros de page */}
               <div className="flex items-center space-x-1">
                 {getPageNumbers().map((pageNum, idx) =>
                   pageNum === "..." ? (
@@ -338,22 +348,17 @@ const EtudiantList: React.FC<EtudiantListProps> = ({
                     <button
                       key={pageNum}
                       onClick={() => setCurrentPage(pageNum as number)}
-                      className={`
-                        px-4 py-2 rounded-lg font-medium transition-all
-                        ${
-                          currentPage === pageNum
-                            ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
-                            : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                        }
-                      `}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                        currentPage === pageNum
+                          ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
+                          : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                      }`}
                     >
                       {pageNum}
                     </button>
                   )
                 )}
               </div>
-
-              {/* Page suivante */}
               <button
                 onClick={() => setCurrentPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
@@ -362,8 +367,6 @@ const EtudiantList: React.FC<EtudiantListProps> = ({
               >
                 <ChevronRight className="w-4 h-4 text-gray-600" />
               </button>
-
-              {/* Dernière page */}
               <button
                 onClick={() => setCurrentPage(totalPages)}
                 disabled={currentPage === totalPages}
