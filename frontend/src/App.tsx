@@ -17,8 +17,6 @@ import MentionPage from "./pages/MentionPage";
 import PresencePage from "./pages/PresencePage";
 import SeancePage from "./pages/SeancePage";
 import AbsenceNotification from "./pages/NotificationPage";
-
-import PiecePage from "./pages/PiecePage";
 import AbsencePage from "./pages/AbsencePage";
 import PiecePage from "./pages/PiecePage";
 
