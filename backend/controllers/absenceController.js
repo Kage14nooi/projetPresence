@@ -159,7 +159,7 @@ exports.searchAbsences = async (req, res) => {
 // 🔄 Générer des absences automatiquement selon la fiche de présence
 exports.generateAbsences = async (req, res) => {
   try {
-    const { seance_id } = req.body;
+    const { seance_id } = req.params;
 
     // Récupérer toutes les présences pour cette séance
     const presences = await Presence.findAll({ where: { seance_id } });
