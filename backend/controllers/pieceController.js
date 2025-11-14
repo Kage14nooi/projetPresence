@@ -1,4 +1,4 @@
-const Piece = require("../models");
+const { PieceJustificative } = require("../models");
 const path = require("path");
 const fs = require("fs");
 
@@ -8,7 +8,7 @@ exports.createPiece = async (req, res) => {
     const { pieceJust_description } = req.body;
     const file = req.file ? req.file.filename : null;
 
-    const newPiece = await Piece.create({
+    const newPiece = await PieceJustificative.create({
       pieceJust_description,
       pieceJust_file: file,
     });
@@ -22,7 +22,7 @@ exports.createPiece = async (req, res) => {
 // READ ALL
 exports.getAllPieces = async (req, res) => {
   try {
-    const pieces = await Piece.findAll();
+    const pieces = await PieceJustificative.findAll();
     res.json(pieces);
   } catch (err) {
     console.error(err);
@@ -33,7 +33,7 @@ exports.getAllPieces = async (req, res) => {
 // READ BY ID
 exports.getPieceById = async (req, res) => {
   try {
-    const piece = await Piece.findByPk(req.params.id);
+    const piece = await PieceJustificative.findByPk(req.params.id);
     if (!piece) return res.status(404).json({ error: "Pièce non trouvée." });
     res.json(piece);
   } catch (err) {
@@ -45,7 +45,7 @@ exports.getPieceById = async (req, res) => {
 // UPDATE
 exports.updatePiece = async (req, res) => {
   try {
-    const piece = await Piece.findByPk(req.params.id);
+    const piece = await PieceJustificative.findByPk(req.params.id);
     if (!piece) return res.status(404).json({ error: "Pièce non trouvée." });
 
     const { pieceJust_description } = req.body;
@@ -77,7 +77,7 @@ exports.updatePiece = async (req, res) => {
 // DELETE
 exports.deletePiece = async (req, res) => {
   try {
-    const piece = await Piece.findByPk(req.params.id);
+    const piece = await PieceJustificative.findByPk(req.params.id);
     if (!piece) return res.status(404).json({ error: "Pièce non trouvée." });
 
     if (piece.pieceJust_file) {
