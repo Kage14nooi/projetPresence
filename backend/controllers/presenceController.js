@@ -150,3 +150,34 @@ exports.exportFicheExcel = async (req, res) => {
     res.status(500).json({ error: "Impossible d'exporter la fiche" });
   }
 };
+
+exports.getPresenceDetails = async (req, res) => {
+  try {
+    const presences = await Presence.findAll({
+      include: [
+        {
+          model: Seance,
+          include: [
+            {
+              model: Matiere,
+              include: [
+                { model: Mentions, attributes: ["mention_nom"] },
+                { model: Parcours, attributes: ["parcours_nom"] },
+                { model: Niveau, attributes: ["niveau_nom"] },
+              ],
+            },
+          ],
+        },
+        {
+          model: Etudiant,
+          attributes: ["nom", "prenom"],
+        },
+      ],
+    });
+
+    res.json(presences);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+};
