@@ -3,6 +3,11 @@ const {
   Etudiant,
   PieceJustificative,
   Presence,
+  Niveau,
+  Parcours,
+  Mentions,
+  Seance,
+  Matiere,
 } = require("../models");
 const { Op } = require("sequelize");
 
@@ -29,17 +34,51 @@ exports.getAbsences = async (req, res) => {
             "etudiant_nom",
             "etudiant_prenom",
             "etudiant_matricule",
-            "etudiant_niveau",
-            "etudiant_parcours",
+          ],
+          include: [
+            {
+              model: Niveau,
+              attributes: ["niveau_nom"],
+            },
+            {
+              model: Parcours,
+              attributes: ["parcours_nom"],
+            },
+            {
+              model: Mentions,
+              attributes: ["mention_nom"],
+            },
           ],
         },
         {
           model: PieceJustificative,
-          attributes: ["pieceJust_id", "pieceJust_description"],
+          attributes: [
+            "pieceJust_id",
+            "pieceJust_description",
+            "motif",
+            "pieceJust_file",
+          ],
+        },
+        {
+          model: Seance,
+          attributes: [
+            "seance_id",
+            "date_seance",
+            "heure_debut",
+            "heure_fin",
+            "matiere_id",
+          ],
+          include: [
+            {
+              model: Matiere,
+              attributes: ["matiere_nom"],
+            },
+          ],
         },
       ],
-      order: [["date_absence", "DESC"]],
+      order: [["absence_id", "DESC"]],
     });
+
     res.json(absences);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -88,14 +127,14 @@ exports.deleteAbsence = async (req, res) => {
   }
 };
 
-// 🔎 Rechercher des absences (nom, matricule, date, motif)
+// 🔎 Rechercher des absences (nom, matricule, statut, justification)
 exports.searchAbsences = async (req, res) => {
   try {
-    const { nom, matricule, date, motif } = req.query;
+    const { nom, matricule, statut, justification_status } = req.query;
 
     const where = {};
-    if (date) where.date_absence = date;
-    if (motif) where.motif = motif;
+    if (statut) where.statut = statut;
+    if (justification_status) where.justification_status = justification_status;
 
     const absences = await Absence.findAll({
       where,
@@ -117,82 +156,38 @@ exports.searchAbsences = async (req, res) => {
   }
 };
 
+// 🔄 Générer des absences automatiquement selon la fiche de présence
 exports.generateAbsences = async (req, res) => {
   try {
-    const { matiere_id, date } = req.body;
+    const { seance_id } = req.body;
 
-    console.log("===== Génération des absences =====");
-    console.log("Matière ID:", matiere_id, "Date:", date);
+    // Récupérer toutes les présences pour cette séance
+    const presences = await Presence.findAll({ where: { seance_id } });
 
-    // Récupérer tous les étudiants
-    const etudiants = await Etudiant.findAll();
-    console.log(
-      "Étudiants dans la base:",
-      etudiants.map((e) => ({
-        id: e.etudiant_id,
-        nom: e.etudiant_nom,
-      }))
-    );
-
-    // Récupérer toutes les présences pour cette matière et cette date
-    const presences = await Presence.findAll({
-      where: { matiere_id, date_presence: date },
-    });
-
-    console.log(
-      "Présences enregistrées:",
-      presences.map((p) => ({
-        etudiant_id: p.etudiant_id,
-        status: p.status,
-      }))
-    );
-
-    // Extraire les IDs des étudiants présents en s'assurant que ce sont des nombres
-    const presentIds = presences
-      .map((p) => Number(p.etudiant_id))
-      .filter((id) => !isNaN(id));
-
-    console.log("IDs des étudiants présents:", presentIds);
-
-    // Trouver les absents
-    const absents = etudiants.filter(
-      (e) =>
-        e.etudiant_id != null && !presentIds.includes(Number(e.etudiant_id))
-    );
-
-    console.log(
-      "Étudiants absents:",
-      absents.map((e) => ({
-        id: e.etudiant_id,
-        nom: e.etudiant_nom,
-      }))
-    );
+    // Filtrer les étudiants absents (status = "A")
+    const absents = presences.filter((p) => p.status === "A");
 
     const absencesCreated = [];
 
-    for (const e of absents) {
-      // Vérifier qu'il n'existe pas déjà une absence pour ce jour et cette matière
+    for (const p of absents) {
+      // Vérifier qu'une absence n'existe pas déjà pour cet étudiant et cette séance
       const existing = await Absence.findOne({
-        where: { etudiant_id: e.etudiant_id, date_absence: date, matiere_id },
+        where: { etudiant_id: p.etudiant_id, seance_id },
       });
-      if (existing) {
-        console.log("Absence déjà existante pour étudiant_id:", e.etudiant_id);
-        continue;
-      }
+      if (existing) continue;
 
       const absence = await Absence.create({
-        etudiant_id: e.etudiant_id,
-        matiere_id,
-        date_absence: date,
-        motif: "Non justifié",
+        etudiant_id: p.etudiant_id,
+        seance_id,
+        statut: "Absent",
+        justification_status: "En attente",
       });
 
-      console.log("Absence créée pour étudiant_id:", e.etudiant_id);
       absencesCreated.push(absence);
     }
 
     res.json({
-      message: "Absences générées automatiquement",
+      message: "Absences générées automatiquement depuis la fiche de présence",
       total_absents: absents.length,
       absences: absencesCreated,
     });

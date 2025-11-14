@@ -11,6 +11,6 @@ router.put("/:id", absenceController.updateAbsence);
 router.delete("/:id", absenceController.deleteAbsence);
 
 // ✅ Génération automatique des absences
-router.post("/generate", absenceController.generateAbsences);
+router.post("/generate/:seance_id", absenceController.generateAbsences);
 
 module.exports = router;
