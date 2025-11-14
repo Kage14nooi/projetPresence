@@ -72,3 +72,21 @@ export interface Seance {
   heure_fin: string;
   matiere?: Matiere; // 👈 OBLIGATOIRE POUR ENLEVER L’ERREUR
 }
+
+export interface PieceJustificative {
+  pieceJust_id: number;
+  pieceJust_description: string;
+  motif: string;
+  pieceJust_file: string;
+}
+
+export interface Absence {
+  absence_id: number;
+  etudiant_id: number;
+  seance_id: number;
+  statut: "Absent" | "Présent" | "En retard";
+  justification_status: "En attente" | "Validée" | "Refusée";
+  etudiant?: Etudiant;
+  seance?: Seance;
+  pieces?: PieceJustificative[];
+}
