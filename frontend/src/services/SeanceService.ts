@@ -67,6 +67,29 @@ export const toggleSeanceActive = async (id: number) => {
     throw err;
   }
 };
+
+// export const toggleSeanceActive = async (
+//   id: number,
+//   isCurrentlyActive: boolean
+// ) => {
+//   try {
+//     if (!isCurrentlyActive) {
+//       // Si la séance est désactivée → on active → toggle classique
+//       const res = await axios.patch(`${API_URL}/${id}/toggle`);
+//       return res.data;
+//     } else {
+//       // Si la séance est active → on désactive → générer les absences
+//       const res = await axios.post(
+//         `http://localhost:3001/api/absences/generate/${id}`
+//       );
+//       return res.data;
+//     }
+//   } catch (err: any) {
+//     console.error("Erreur toggleSeance:", err);
+//     throw err;
+//   }
+// };
+
 export const getSeanceAbsences = async (seanceId: number) => {
   try {
     const response = await axios.get(`${API_URL}/absences/${seanceId}`);
