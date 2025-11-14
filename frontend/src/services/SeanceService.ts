@@ -76,3 +76,14 @@ export const getSeanceAbsences = async (seanceId: number) => {
     return [];
   }
 };
+
+// Récupérer toutes les absences
+export const getAbsences = async () => {
+  try {
+    const response = await axios.get("http://localhost:3001/api/absences");
+    return response.data; // renvoie la liste des absences
+  } catch (err) {
+    console.error("❌ Erreur lors de la récupération des absences :", err);
+    return [];
+  }
+};

@@ -8,7 +8,6 @@ import {
   FileText,
   Bell,
   ClipboardList,
-  BarChart3,
   Settings,
   LogOut,
   X,
@@ -61,12 +60,12 @@ const NavBar: React.FC<NavBarProps> = ({
       path: "/presence",
     },
     { id: "absences", label: "Absences", icon: Calendar, path: "/absences" },
-    // {
-    //   id: "justifications",
-    //   label: "Justificatifs",
-    //   icon: FileText,
-    //   path: "/justificatifs",
-    // },
+    {
+      id: "justifications",
+      label: "Justificatifs",
+      icon: FileText,
+      path: "/justificatifs",
+    },
     {
       id: "notifications",
       label: "Notifications",

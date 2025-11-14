@@ -17,6 +17,7 @@ import MentionPage from "./pages/MentionPage";
 import PresencePage from "./pages/PresencePage";
 import SeancePage from "./pages/SeancePage";
 import AbsenceNotification from "./pages/NotificationPage";
+import PiecePage from "./pages/PiecePage";
 
 function App() {
   const isAuthenticated = !!localStorage.getItem("token"); // Vérifie si token existe
@@ -128,6 +129,18 @@ function App() {
                 </Layout>
               ) : (
                 <Navigate to="/presence" />
+              )
+            }
+          />
+          <Route
+            path="/justificatifs"
+            element={
+              isAuthenticated ? (
+                <Layout>
+                  <PiecePage />
+                </Layout>
+              ) : (
+                <Navigate to="/login" />
               )
             }
           />
