@@ -9,7 +9,11 @@ import {
 
 import PieceList from "../composants/PieceJustificatif/PieceList";
 import PieceModal from "../composants/PieceJustificatif/PieceModal";
+<<<<<<< HEAD
 import { getAbsences } from "../services/SeanceService";
+=======
+import { getAbsences } from "../services/AbsenceService";
+>>>>>>> 8ff0c77935de9177658a81d10697fded167598d2
 
 const initialFormData = {
   pieceJust_id: null,

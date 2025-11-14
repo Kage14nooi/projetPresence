@@ -20,6 +20,7 @@ import AbsenceNotification from "./pages/NotificationPage";
 
 import PiecePage from "./pages/PiecePage";
 import AbsencePage from "./pages/AbsencePage";
+import PiecePage from "./pages/PiecePage";
 
 function App() {
   const isAuthenticated = !!localStorage.getItem("token"); // Vérifie si token existe

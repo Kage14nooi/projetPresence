@@ -68,6 +68,7 @@ exports.getPieceById = async (req, res) => {
 };
 
 // ---------------- UPDATE ----------------
+
 exports.updatePiece = async (req, res) => {
   try {
     const id = req.params.id;
@@ -79,7 +80,10 @@ exports.updatePiece = async (req, res) => {
 
     const { absence_id, motif, pieceJust_description } = req.body;
 
+    // Vérifie si un nouveau fichier est uploadé
     if (req.file) {
+      console.log("Fichier uploadé :", req.file);
+
       // Supprimer l'ancien fichier si existant
       if (piece.pieceJust_file) {
         const oldPath = path.join(
@@ -87,30 +91,40 @@ exports.updatePiece = async (req, res) => {
           "../uploads",
           piece.pieceJust_file
         );
-        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath);
+          console.log("Ancien fichier supprimé :", oldPath);
+        }
       }
+
+      // Mettre à jour le nom du fichier
       piece.pieceJust_file = req.file.filename;
     }
 
+    // Mettre à jour les autres champs
     piece.absence_id = absence_id ?? piece.absence_id;
     piece.motif = motif ?? piece.motif;
     piece.pieceJust_description =
       pieceJust_description ?? piece.pieceJust_description;
 
     await piece.save();
-    //  Mettre à jour le statut de justification de l'absence
-    const absence = await Absence.findByPk(piece.absence_id);
-    if (absence) {
-      absence.justification_status = "Validée"; // Adaptable
-      await absence.save();
+
+    // Mettre à jour le statut de justification de l'absence
+    if (piece.absence_id) {
+      const absence = await Absence.findByPk(piece.absence_id);
+      if (absence) {
+        absence.justification_status = "Validée";
+        await absence.save();
+      }
     }
 
-    res.json(piece);
+    res.json({ message: "Pièce mise à jour avec succès", piece });
   } catch (error) {
     console.error("Erreur mise à jour pièce :", error);
-    res
-      .status(500)
-      .json({ error: "Impossible de mettre à jour la pièce justificative" });
+    res.status(500).json({
+      error: "Impossible de mettre à jour la pièce justificative",
+      details: error.message,
+    });
   }
 };
 

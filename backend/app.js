@@ -23,6 +23,7 @@ const logRoutes = require("./routes/logRoutes");
 const MentionRoute = require("./routes/MentionRoutes");
 const NiveauRoute = require("./routes/NiveauRoutes");
 const sceancesRoutes = require("./routes/sceanceRoutes");
+const path = require("path");
 
 // Utilisation des routes
 app.use("/api/admins", adminRoutes);
@@ -39,5 +40,6 @@ app.use("/api/logs", logRoutes);
 app.use("/api/mentions", MentionRoute);
 app.use("/api/niveaus", NiveauRoute);
 app.use("/api/sceances", sceancesRoutes);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 module.exports = app;
