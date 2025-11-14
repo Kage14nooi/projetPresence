@@ -198,8 +198,22 @@ const PieceJustificative = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
-    pieceJust_description: DataTypes.STRING,
-    pieceJust_file: DataTypes.STRING,
+    absence_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    motif: {
+      type: DataTypes.ENUM("Maladie", "Evénement familial", "Autres"),
+      allowNull: false,
+    },
+    pieceJust_file: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    pieceJust_description: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   { timestamps: false }
 );
@@ -215,11 +229,22 @@ const Absence = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
-    etudiant_id: DataTypes.INTEGER,
-    seance_id: DataTypes.INTEGER,
-    motif: DataTypes.ENUM("Maladie", "Evénement familial", "Autres"),
-    pieceJust_id: DataTypes.INTEGER,
-    observation: DataTypes.TEXT,
+    etudiant_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    seance_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    statut: {
+      type: DataTypes.ENUM("Absent", "Présent", "En retard"),
+      defaultValue: "Absent",
+    },
+    justification_status: {
+      type: DataTypes.ENUM("En attente", "Validée", "Refusée"),
+      defaultValue: "En attente",
+    },
   },
   { timestamps: false }
 );
@@ -283,7 +308,9 @@ Presence.belongsTo(Seance, { foreignKey: "seance_id" });
 
 Absence.belongsTo(Etudiant, { foreignKey: "etudiant_id" });
 Absence.belongsTo(Seance, { foreignKey: "seance_id" });
-Absence.belongsTo(PieceJustificative, { foreignKey: "pieceJust_id" });
+// Absence.belongsTo(PieceJustificative, { foreignKey: "pieceJust_id" });
+Absence.hasMany(PieceJustificative, { foreignKey: "absence_id" });
+PieceJustificative.belongsTo(Absence, { foreignKey: "absence_id" });
 
 Notification.belongsTo(Etudiant, { foreignKey: "etudiant_id" });
 

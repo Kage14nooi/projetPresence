@@ -1,4 +1,12 @@
-const { Seance, Presence, Etudiant, Matiere } = require("../models");
+const {
+  Seance,
+  Presence,
+  Etudiant,
+  Matiere,
+  Mentions,
+  Parcours,
+  Niveau,
+} = require("../models");
 
 // ---------------- CREATE ----------------
 exports.createSeance = async (req, res) => {
@@ -42,10 +50,25 @@ exports.getAllSeances = async (req, res) => {
       include: [
         {
           model: Matiere,
-          as: "matiere", // doit correspondre à l'alias défini dans Seance.belongsTo
-          attributes: ["matiere_nom"], // récupère uniquement le nom de la matière
+          as: "matiere", // ⚠️ doit être identique à l'alias dans ton association
+          attributes: ["matiere_nom"],
+          include: [
+            {
+              model: Mentions,
+              attributes: ["mention_nom"],
+            },
+            {
+              model: Parcours,
+              attributes: ["parcours_nom"],
+            },
+            {
+              model: Niveau,
+              attributes: ["niveau_nom"],
+            },
+          ],
         },
       ],
+      order: [["seance_id", "DESC"]],
     });
 
     res.json(seances);

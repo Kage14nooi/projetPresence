@@ -45,3 +45,30 @@ export interface Presence {
   etudiant?: Etudiant;
   seance?: Seance;
 }
+
+export interface Mention {
+  mention_nom: string;
+}
+
+export interface Parcours {
+  parcours_nom: string;
+}
+
+export interface Niveau {
+  niveau_nom: string;
+}
+
+export interface Matiere {
+  matiere_nom: string;
+  mention?: Mention;
+  parcour?: Parcours; // ⚠️ attention au nom EXACT selon ton backend
+  niveau?: Niveau;
+}
+
+export interface Seance {
+  seance_id: number;
+  date_seance: string;
+  heure_debut: string;
+  heure_fin: string;
+  matiere?: Matiere; // 👈 OBLIGATOIRE POUR ENLEVER L’ERREUR
+}
