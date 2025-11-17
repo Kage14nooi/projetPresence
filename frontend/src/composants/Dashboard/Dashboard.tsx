@@ -10,68 +10,19 @@ import {
   UserCheck,
   UserX,
 } from "lucide-react";
-import NavBar from "../Nav/Nav";
-
-// 🟩 Types des objets utilisés
-interface Stat {
-  id: number;
-  title: string;
-  value: string;
-  change: string;
-  trend: "up" | "down";
-  icon: React.ElementType;
-  bgColor: string;
-  textColor: string;
-}
-
-interface Activity {
-  id: number;
-  student: string;
-  action: string;
-  subject: string;
-  time: string;
-  status: string;
-}
-
-interface Alert {
-  id: number;
-  type: "warning" | "info";
-  message: string;
-  time: string;
-}
+import DashboardService from "../../services/dashboardService";
+import type { Alert, Activity } from "../../services/dashboardService";
 
 const Dashboard: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
-  const [activeMenu, setActiveMenu] = useState<string>("dashboard");
   const [now, setNow] = useState(new Date());
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setNow(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const options = {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  };
-  const dateStr = now.toLocaleDateString("fr-FR", options);
-
-  const hours = now.getHours().toString().padStart(2, "0");
-  const minutes = now.getMinutes().toString().padStart(2, "0");
-  const seconds = now.getSeconds().toString().padStart(2, "0");
-  const temeStr = `${hours}h: ${minutes}min : ${seconds}s`;
-
-  // 📊 Statistiques principales
-  const stats: Stat[] = [
+  const [stats, setStats] = useState([
     {
       id: 1,
       title: "Total Étudiants",
-      value: "1,234",
-      change: "+12%",
+      value: "0",
+      change: "+0%",
       trend: "up",
       icon: UserCheck,
       bgColor: "bg-blue-50",
@@ -80,8 +31,8 @@ const Dashboard: React.FC = () => {
     {
       id: 2,
       title: "Présents Aujourd'hui",
-      value: "1,089",
-      change: "+5%",
+      value: "0",
+      change: "+0%",
       trend: "up",
       icon: UserCheck,
       bgColor: "bg-green-50",
@@ -90,8 +41,8 @@ const Dashboard: React.FC = () => {
     {
       id: 3,
       title: "Absents",
-      value: "145",
-      change: "-8%",
+      value: "0",
+      change: "+0%",
       trend: "down",
       icon: UserX,
       bgColor: "bg-red-50",
@@ -100,50 +51,54 @@ const Dashboard: React.FC = () => {
     {
       id: 4,
       title: "Taux de Présence",
-      value: "88.2%",
-      change: "+2%",
+      value: "0%",
+      change: "+0%",
       trend: "up",
       icon: BarChart3,
       bgColor: "bg-purple-50",
       textColor: "text-purple-600",
     },
-  ];
+  ]);
 
-  // 🕒 Activités récentes
-  const recentActivities: Activity[] = [
-    {
-      id: 1,
-      student: "Jean Dupont",
-      action: "Présence enregistrée",
-      subject: "Mathématiques",
-      time: "Il y a 5 min",
-      status: "present",
-    },
-    {
-      id: 2,
-      student: "Marie Martin",
-      action: "Absence justifiée",
-      subject: "Physique",
-      time: "Il y a 15 min",
-      status: "justified",
-    },
-  ];
+  const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
 
-  // 🚨 Alertes
-  const alerts: Alert[] = [
-    {
-      id: 1,
-      type: "warning",
-      message: "15 étudiants ont plus de 3 absences non justifiées",
-      time: "Aujourd'hui",
-    },
-    {
-      id: 2,
-      type: "info",
-      message: "Nouveau justificatif en attente de validation",
-      time: "Il y a 2h",
-    },
-  ];
+  // Timer pour l'heure
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Fetch dashboard depuis le backend
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await DashboardService.getDashboard();
+
+        setStats([
+          { ...stats[0], value: data.stats.totalStudents.toString() },
+          { ...stats[1], value: data.stats.presencesToday.toString() },
+          { ...stats[2], value: data.stats.absentsToday.toString() },
+          { ...stats[3], value: data.stats.attendanceRate + "%" },
+        ]);
+
+        setRecentActivities(data.recentActivities);
+        setAlerts(data.alerts);
+      } catch (error) {
+        console.error("Erreur fetch dashboard :", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const dateStr = now.toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  const timeStr = now.toLocaleTimeString("fr-FR");
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -172,12 +127,12 @@ const Dashboard: React.FC = () => {
           <div className="flex items-center space-x-4">
             <div className="text-right">
               <p className="text-sm font-semibold text-gray-700">{dateStr}</p>
-              <p className="text-xs text-gray-500">{temeStr}</p>
+              <p className="text-xs text-gray-500">{timeStr}</p>
             </div>
             <button className="relative p-2 hover:bg-gray-100 rounded-full transition-colors">
               <Bell className="w-6 h-6 text-gray-600" />
               <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                3
+                {alerts.length}
               </span>
             </button>
           </div>
@@ -191,7 +146,6 @@ const Dashboard: React.FC = () => {
           {stats.map((stat) => {
             const Icon = stat.icon;
             const TrendIcon = stat.trend === "up" ? TrendingUp : TrendingDown;
-
             return (
               <div
                 key={stat.id}
