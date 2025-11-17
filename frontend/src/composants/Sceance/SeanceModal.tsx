@@ -6,9 +6,10 @@ interface SeanceModalProps {
   onClose: () => void;
   formData: any;
   setFormData: (data: any) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (data: any) => Promise<void>; // ✅ Changé : reçoit data au lieu de event
   errors: any;
-  matieres: any[]; // liste des matières pour le select
+  setErrors: (data: any) => void;
+  matieres: any[];
 }
 
 const SeanceModal: React.FC<SeanceModalProps> = ({
@@ -18,6 +19,7 @@ const SeanceModal: React.FC<SeanceModalProps> = ({
   setFormData,
   onSubmit,
   errors,
+  setErrors,
   matieres,
 }) => {
   if (!isOpen) return null;
@@ -27,7 +29,7 @@ const SeanceModal: React.FC<SeanceModalProps> = ({
       <div className="bg-white rounded-2xl p-6 w-96 shadow-lg relative">
         <button
           onClick={onClose}
-          className="absolute top-2 right-3 text-gray-600 text-xl"
+          className="absolute top-2 right-3 text-gray-600 text-xl hover:text-gray-800"
         >
           ✖
         </button>
@@ -39,6 +41,7 @@ const SeanceModal: React.FC<SeanceModalProps> = ({
           setFormData={setFormData}
           onSubmit={onSubmit}
           errors={errors}
+          setErrors={setErrors}
           matieres={matieres}
         />
       </div>

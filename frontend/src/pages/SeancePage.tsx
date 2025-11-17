@@ -4,7 +4,7 @@ import {
   createSeance,
   updateSeance,
   deleteSeance,
-  toggleSeanceActive, // <- ajoute cette fonction
+  toggleSeanceActive,
 } from "../services/SeanceService";
 
 import { UserPlus } from "lucide-react";
@@ -28,6 +28,7 @@ const SeancePage: React.FC = () => {
   const [errors, setErrors] = useState<any>({});
   const [loading, setLoading] = useState(true);
 
+  // Récupérer la liste des séances
   const fetchSeances = async () => {
     try {
       const data = await getSeances();
@@ -39,6 +40,7 @@ const SeancePage: React.FC = () => {
     }
   };
 
+  // Récupérer la liste des matières
   const fetchMatieres = async () => {
     try {
       const data = await getMatieres();
@@ -53,9 +55,9 @@ const SeancePage: React.FC = () => {
     fetchMatieres();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.matiere_id || !formData.date_seance) {
+  // Gestion de la soumission du formulaire
+  const handleSubmit = async (data: any) => {
+    if (!data.matiere_id || !data.date_seance) {
       setErrors({
         matiere_id: "La matière est requise",
         date_seance: "La date est requise",
@@ -64,8 +66,11 @@ const SeancePage: React.FC = () => {
     }
 
     try {
-      if (formData.seance_id) await updateSeance(formData.seance_id, formData);
-      else await createSeance(formData);
+      if (data.seance_id) {
+        await updateSeance(data.seance_id, data);
+      } else {
+        await createSeance(data);
+      }
 
       setIsModalOpen(false);
       setFormData(initialFormData);
@@ -76,18 +81,28 @@ const SeancePage: React.FC = () => {
     }
   };
 
+  // Supprimer une séance
   const handleDelete = async (id: number) => {
-    if (confirm("Voulez-vous vraiment supprimer cette séance ?")) {
+    if (!confirm("Voulez-vous vraiment supprimer cette séance ?")) return;
+
+    try {
       await deleteSeance(id);
       fetchSeances();
+    } catch (err: any) {
+      console.error("Erreur lors de la suppression:", err);
+      alert(
+        `Erreur lors de la suppression: ${
+          err.response?.data?.error || err.message || "Erreur inconnue"
+        }`
+      );
     }
   };
 
-  // ✅ Fonction pour activer/désactiver la séance
+  // Activer / désactiver une séance
   const handleToggleActive = async (seanceId: number) => {
     try {
       await toggleSeanceActive(seanceId);
-      fetchSeances(); // recharge la liste après le toggle
+      fetchSeances();
     } catch (err) {
       console.error(err);
     }
@@ -117,12 +132,16 @@ const SeancePage: React.FC = () => {
           seances={seances}
           matieres={matieres}
           onEdit={(s) => {
-            setFormData(s);
+            setFormData({
+              ...s,
+              date_debut_initiale: s.date_seance,
+              heure_debut_initiale: s.heure_debut,
+            });
             setIsModalOpen(true);
             setErrors({});
           }}
           onDelete={handleDelete}
-          onToggleActive={handleToggleActive} // <- ajouté
+          onToggleActive={handleToggleActive}
         />
       )}
 
@@ -135,8 +154,9 @@ const SeancePage: React.FC = () => {
         }}
         formData={formData}
         setFormData={setFormData}
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit} // <-- reçoit directement les données
         errors={errors}
+        setErrors={setErrors}
         matieres={matieres}
       />
     </div>
