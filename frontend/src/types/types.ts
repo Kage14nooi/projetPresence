@@ -57,11 +57,19 @@ export interface Parcours {
 export interface Niveau {
   niveau_nom: string;
 }
+export interface Professeur {
+  professeur_id: number;
+  professeur_nom: string;
+  professeur_prenom: string;
+  professeur_mail: string;
+  professeur_tel: string;
+}
 
 export interface Matiere {
   matiere_nom: string;
+  professeur?: Professeur; // 👈 Ajout du professeur
   mention?: Mention;
-  parcour?: Parcours; // ⚠️ attention au nom EXACT selon ton backend
+  parcour?: Parcours; // ⚠️ Nom exact selon backend
   niveau?: Niveau;
 }
 

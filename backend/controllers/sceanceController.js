@@ -6,6 +6,7 @@ const {
   Mentions,
   Parcours,
   Niveau,
+  Professeur,
 } = require("../models");
 
 // ---------------- CREATE ----------------
@@ -203,10 +204,40 @@ exports.getPresenceBySeance = async (req, res) => {
       where: { seance_id: seanceId },
       include: [
         {
-          model: Etudiant, // ✅ Inclut TOUS les champs de l'étudiant
+          model: Etudiant,
+          as: "etudiant",
+          attributes: [
+            "etudiant_id",
+            "etudiant_matricule",
+            "etudiant_nom",
+            "etudiant_prenom",
+          ],
+          include: [
+            { model: Parcours, attributes: ["parcours_nom"] },
+            { model: Mentions, attributes: ["mention_nom"] },
+            { model: Niveau, attributes: ["niveau_nom"] },
+          ],
         },
         {
-          model: Seance, // ✅ Inclut TOUS les champs de la séance
+          model: Seance,
+          as: "seance",
+          attributes: ["seance_id", "date_seance", "heure_debut", "heure_fin"],
+          include: [
+            {
+              model: Matiere,
+              as: "matiere",
+              attributes: ["matiere_id", "matiere_nom"],
+              include: [
+                {
+                  model: Professeur,
+                  attributes: ["professeur_nom"],
+                },
+                { model: Parcours, attributes: ["parcours_nom"] },
+                { model: Niveau, attributes: ["niveau_nom"] },
+                { model: Mentions, attributes: ["mention_nom"] },
+              ],
+            },
+          ],
         },
       ],
     });
