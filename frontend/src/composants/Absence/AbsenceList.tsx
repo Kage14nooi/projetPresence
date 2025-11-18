@@ -9,10 +9,12 @@ import {
   Filter,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   X,
-  TrendingUp,
-  AlertCircle,
   CheckCircle,
+  Clock,
+  AlertCircle,
 } from "lucide-react";
 
 interface PieceJustificative {
@@ -130,18 +132,17 @@ const AbsenceList: React.FC<AbsenceListProps> = ({ absences = [] }) => {
         new Date(a.seance.date_seance).getTime()
     );
 
-  // Statistiques
+  const attente = filteredAbsences.filter((a) =>
+    a.justification_status.toLowerCase().includes("attente")
+  ).length;
+
+  const total = filteredAbsences.length;
+  const justifiees = total - attente;
+
   const stats = {
-    total: filteredAbsences.length,
-    justifiees: filteredAbsences.filter((a) =>
-      a.justification_status.toLowerCase().includes("justif")
-    ).length,
-    nonJustifiees: filteredAbsences.filter((a) =>
-      a.justification_status.toLowerCase().includes("non")
-    ).length,
-    enAttente: filteredAbsences.filter((a) =>
-      a.justification_status.toLowerCase().includes("attente")
-    ).length,
+    total,
+    justifiees,
+    enAttente: attente,
   };
 
   // Pagination
@@ -177,336 +178,420 @@ const AbsenceList: React.FC<AbsenceListProps> = ({ absences = [] }) => {
     return "bg-gray-100 text-gray-700 border-gray-200";
   };
 
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisiblePages = 5;
+
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) pages.push(i);
+        pages.push("...");
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push("...");
+        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push("...");
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+        pages.push("...");
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* En-tête avec gradient moderne */}
-        <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 rounded-2xl p-8 shadow-2xl mb-6">
-          <div className="flex items-center justify-between mb-6">
+    <div className="flex flex-col min-h-full">
+      {/* En-tête avec style unifié */}
+      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-t-xl p-6 shadow-lg">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3">
+              <Calendar className="w-8 h-8 text-white" />
+            </div>
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2">
+              <h2 className="text-2xl font-bold text-white">
                 Gestion des Absences
-              </h1>
-              <p className="text-purple-100">
-                Suivi et analyse des présences étudiantes
+              </h2>
+              <p className="text-blue-100 text-sm">
+                {filteredAbsences.length} absence
+                {filteredAbsences.length > 1 ? "s" : ""}{" "}
+                {searchTerm &&
+                  `(filtré${filteredAbsences.length > 1 ? "es" : "e"} sur ${
+                    absences.length
+                  })`}
               </p>
             </div>
-            <div className="bg-white/20 backdrop-blur-sm rounded-xl px-6 py-3">
-              <p className="text-white text-sm font-medium">Total</p>
-              <p className="text-4xl font-bold text-white">{stats.total}</p>
+          </div>
+        </div>
+
+        {/* Statistiques en cartes blanches */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm mb-1">Total</p>
+                <p className="text-3xl font-bold text-indigo-600">
+                  {stats.total}
+                </p>
+              </div>
+              <div className="bg-indigo-100 rounded-lg p-3">
+                <AlertCircle className="w-6 h-6 text-indigo-600" />
+              </div>
             </div>
           </div>
 
-          {/* Statistiques en cartes */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 hover:bg-white/20 transition-all">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white/80 text-sm mb-1">Justifiées</p>
-                  <p className="text-3xl font-bold text-white">
-                    {stats.justifiees}
-                  </p>
-                </div>
-                <CheckCircle className="w-10 h-10 text-green-300" />
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm mb-1">Justifiées</p>
+                <p className="text-3xl font-bold text-green-600">
+                  {stats.justifiees}
+                </p>
+              </div>
+              <div className="bg-green-100 rounded-lg p-3">
+                <CheckCircle className="w-6 h-6 text-green-600" />
               </div>
             </div>
+          </div>
 
-            <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 hover:bg-white/20 transition-all">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white/80 text-sm mb-1">Non Justifiées</p>
-                  <p className="text-3xl font-bold text-white">
-                    {stats.nonJustifiees}
-                  </p>
-                </div>
-                <AlertCircle className="w-10 h-10 text-red-300" />
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm mb-1">En Attente</p>
+                <p className="text-3xl font-bold text-yellow-600">
+                  {stats.enAttente}
+                </p>
               </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 hover:bg-white/20 transition-all">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white/80 text-sm mb-1">En Attente</p>
-                  <p className="text-3xl font-bold text-white">
-                    {stats.enAttente}
-                  </p>
-                </div>
-                <TrendingUp className="w-10 h-10 text-yellow-300" />
+              <div className="bg-yellow-100 rounded-lg p-3">
+                <Clock className="w-6 h-6 text-yellow-600" />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Carte de recherche et filtres */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-          {/* Barre de recherche */}
-          <div className="relative mb-4">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Rechercher par nom, matricule, matière, statut..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 rounded-xl bg-gray-50 border-2 border-gray-200 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-gray-700 placeholder-gray-400"
-            />
-          </div>
-
-          {/* Toggle filtres */}
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 text-purple-600 hover:text-purple-700 font-medium mb-4 transition-colors"
-          >
-            <Filter className="w-5 h-5" />
-            {showFilters ? "Masquer les filtres" : "Afficher les filtres"}
-          </button>
-
-          {/* Filtres déroulants */}
-          {showFilters && (
-            <div className="bg-gray-50 rounded-xl p-4 mb-4 border border-gray-200">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                    <BookOpen className="w-4 h-4" />
-                    Matière
-                  </label>
-                  <select
-                    value={selectedMatiere}
-                    onChange={(e) =>
-                      setSelectedMatiere(Number(e.target.value) || "")
-                    }
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all"
-                  >
-                    <option value="">Toutes les matières</option>
-                    {matiereOptions.map((m) => (
-                      <option key={m} value={m}>
-                        {
-                          absences.find((a) => a.seance.matiere_id === m)
-                            ?.seance.matiere.matiere_nom
-                        }
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                    <Calendar className="w-4 h-4" />
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all"
-                  />
-                </div>
-              </div>
-
-              <button
-                onClick={clearFilters}
-                className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                <X className="w-4 h-4" />
-                Réinitialiser les filtres
-              </button>
-            </div>
-          )}
+        {/* Barre de recherche */}
+        <div className="relative mb-4">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <input
+            type="text"
+            placeholder="Rechercher par nom, matricule, matière, statut..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 rounded-lg bg-white/90 backdrop-blur-sm border-2 border-white/20 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+          />
         </div>
 
-        {/* Tableau dans une carte */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
-                  <th className="px-6 py-4 text-left text-sm font-semibold">
-                    ID
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">
-                    Étudiant
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">
-                    Matricule
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">
-                    Séance
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">
-                    Statut
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">
-                    Justification
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">
-                    Pièces
-                  </th>
+        {/* Toggle filtres */}
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className="flex items-center gap-2 text-white hover:text-blue-100 font-medium transition-colors"
+        >
+          <Filter className="w-5 h-5" />
+          {showFilters ? "Masquer les filtres" : "Afficher les filtres"}
+        </button>
+
+        {/* Filtres déroulants */}
+        {showFilters && (
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 mt-4 border border-white/20">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                  <BookOpen className="w-4 h-4" />
+                  Matière
+                </label>
+                <select
+                  value={selectedMatiere}
+                  onChange={(e) =>
+                    setSelectedMatiere(Number(e.target.value) || "")
+                  }
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 transition-all"
+                >
+                  <option value="">Toutes les matières</option>
+                  {matiereOptions.map((m) => (
+                    <option key={m} value={m}>
+                      {
+                        absences.find((a) => a.seance.matiere_id === m)?.seance
+                          .matiere.matiere_nom
+                      }
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                  <Calendar className="w-4 h-4" />
+                  Date
+                </label>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 transition-all"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={clearFilters}
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              <X className="w-4 h-4" />
+              Réinitialiser les filtres
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Table avec style unifié */}
+      <div className="flex-1 bg-white overflow-hidden">
+        <div className="overflow-x-auto flex-1">
+          <table className="w-full">
+            <thead className="sticky top-0 bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-indigo-200 z-10">
+              <tr>
+                {/* <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  ID
+                </th> */}
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  Matricule
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  Étudiant
+                </th>
+
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  Séance
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  Statut
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  Justification
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  Pièces
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {currentAbsences.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="p-12">
+                    <div className="text-center">
+                      <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                        <Calendar className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <p className="text-gray-500 text-lg font-medium">
+                        {searchTerm
+                          ? "Aucun résultat trouvé"
+                          : "Aucune absence trouvée"}
+                      </p>
+                      <p className="text-gray-400 text-sm mt-1">
+                        {searchTerm
+                          ? "Essayez avec d'autres mots-clés"
+                          : "Les absences apparaîtront ici"}
+                      </p>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {currentAbsences.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-16 text-center">
-                      <div className="flex flex-col items-center justify-center text-gray-400">
-                        <Search className="w-16 h-16 mb-4 opacity-50" />
-                        <p className="text-lg font-medium">
-                          Aucune absence trouvée
+              ) : (
+                currentAbsences.map((a, i) => (
+                  <tr
+                    key={a.absence_id}
+                    className={`transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 ${
+                      i % 2 === 0 ? "bg-white" : "bg-gray-50/50"
+                    }`}
+                  >
+                    {/* <td className="px-6 py-4">
+                      <span className="text-sm font-semibold text-gray-900">
+                        #{a.absence_id}
+                      </span>
+                    </td> */}
+                    <td className="px-6 py-4">
+                      <div className="w-24 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-xs shadow-md">
+                        {a.etudiant.etudiant_matricule.substring(0, 10)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold shadow-md">
+                          {a.etudiant.etudiant_prenom[0]}
+                          {a.etudiant.etudiant_nom[0]}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {a.etudiant.etudiant_nom}{" "}
+                            {a.etudiant.etudiant_prenom}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <div className="text-sm">
+                        <p className="font-semibold text-gray-900">
+                          {a.seance.matiere.matiere_nom}
                         </p>
-                        <p className="text-sm mt-2">
-                          Essayez de modifier vos critères de recherche
+                        <p className="text-gray-500 text-xs mt-1">
+                          {a.seance.date_seance} • {a.seance.heure_debut} -{" "}
+                          {a.seance.heure_fin}
                         </p>
                       </div>
                     </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-flex px-3 py-1 rounded-full text-xs font-medium border ${getStatutBadge(
+                          a.statut
+                        )}`}
+                      >
+                        {a.statut}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-flex px-3 py-1 rounded-full text-xs font-medium border ${getJustificationBadge(
+                          a.justification_status
+                        )}`}
+                      >
+                        {a.justification_status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      {a.pieces.length > 0 ? (
+                        <div className="space-y-1">
+                          {a.pieces.map((p: PieceJustificative) => (
+                            <div
+                              key={p.pieceJust_id}
+                              className="flex items-center gap-2"
+                            >
+                              <FileText className="w-4 h-4 text-indigo-500" />
+                              <span className="text-xs text-gray-600 truncate max-w-[150px]">
+                                {p.pieceJust_description}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400">
+                          Aucune pièce
+                        </span>
+                      )}
+                    </td>
                   </tr>
-                ) : (
-                  currentAbsences.map((a) => (
-                    <tr
-                      key={a.absence_id}
-                      className="hover:bg-purple-50 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <span className="text-sm font-medium text-gray-900">
-                          {a.absence_id}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">
-                            {a.etudiant.etudiant_prenom[0]}
-                            {a.etudiant.etudiant_nom[0]}
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">
-                              {a.etudiant.etudiant_nom}{" "}
-                              {a.etudiant.etudiant_prenom}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm text-gray-600 font-mono">
-                          {a.etudiant.etudiant_matricule}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm">
-                          <p className="font-medium text-gray-900">
-                            {a.seance.matiere.matiere_nom}
-                          </p>
-                          <p className="text-gray-500 text-xs mt-1">
-                            {a.seance.date_seance} • {a.seance.heure_debut} -{" "}
-                            {a.seance.heure_fin}
-                          </p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold border ${getStatutBadge(
-                            a.statut
-                          )}`}
-                        >
-                          {a.statut}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold border ${getJustificationBadge(
-                            a.justification_status
-                          )}`}
-                        >
-                          {a.justification_status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        {a.pieces.length > 0 ? (
-                          <div className="space-y-1">
-                            {a.pieces.map((p: PieceJustificative) => (
-                              <div
-                                key={p.pieceJust_id}
-                                className="flex items-center gap-2"
-                              >
-                                <FileText className="w-4 h-4 text-purple-500" />
-                                <span className="text-xs text-gray-600">
-                                  {p.pieceJust_description}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="text-xs text-gray-400">
-                            Aucune pièce
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-          {/* Pagination moderne */}
-          {filteredAbsences.length > 0 && (
-            <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
-              <div className="text-sm text-gray-600">
+      {/* Pagination avec style unifié */}
+      {filteredAbsences.length > 0 && (
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-t border-gray-200 rounded-b-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <p className="text-sm text-gray-600">
                 Affichage de{" "}
-                <span className="font-medium text-gray-900">
+                <span className="font-semibold text-indigo-600">
                   {startIndex + 1}
                 </span>{" "}
                 à{" "}
-                <span className="font-medium text-gray-900">
+                <span className="font-semibold text-indigo-600">
                   {Math.min(endIndex, filteredAbsences.length)}
                 </span>{" "}
                 sur{" "}
-                <span className="font-medium text-gray-900">
+                <span className="font-semibold text-indigo-600">
                   {filteredAbsences.length}
                 </span>{" "}
-                résultats
-              </div>
+                absence{filteredAbsences.length > 1 ? "s" : ""}
+              </p>
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Par page:</span>
                 <select
                   value={itemsPerPage}
                   onChange={(e) => {
                     setItemsPerPage(Number(e.target.value));
                     setCurrentPage(1);
                   }}
-                  className="px-3 py-2 rounded-lg border border-gray-300 text-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                  className="px-3 py-1 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                 >
-                  {[5, 10, 20, 50].map((n) => (
-                    <option key={n} value={n}>
-                      {n} par page
-                    </option>
-                  ))}
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
                 </select>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronLeft className="w-5 h-5 text-gray-600" />
-                  </button>
-
-                  <span className="px-4 py-2 text-sm font-medium text-gray-700">
-                    Page {currentPage} sur {totalPages}
-                  </span>
-
-                  <button
-                    onClick={() =>
-                      setCurrentPage((p) => Math.min(totalPages, p + 1))
-                    }
-                    disabled={currentPage === totalPages}
-                    className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronRight className="w-5 h-5 text-gray-600" />
-                  </button>
-                </div>
               </div>
             </div>
-          )}
+
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                title="Première page"
+              >
+                <ChevronsLeft className="w-4 h-4 text-gray-600" />
+              </button>
+              <button
+                onClick={() => setCurrentPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                title="Page précédente"
+              >
+                <ChevronLeft className="w-4 h-4 text-gray-600" />
+              </button>
+              <div className="flex items-center space-x-1">
+                {getPageNumbers().map((pageNum, idx) =>
+                  pageNum === "..." ? (
+                    <span
+                      key={`ellipsis-${idx}`}
+                      className="px-3 py-1 text-gray-500"
+                    >
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum as number)}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                        currentPage === pageNum
+                          ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
+                          : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  )
+                )}
+              </div>
+              <button
+                onClick={() => setCurrentPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                title="Page suivante"
+              >
+                <ChevronRight className="w-4 h-4 text-gray-600" />
+              </button>
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                title="Dernière page"
+              >
+                <ChevronsRight className="w-4 h-4 text-gray-600" />
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

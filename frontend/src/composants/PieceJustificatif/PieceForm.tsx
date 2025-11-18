@@ -1,21 +1,22 @@
-import React, { type ChangeEvent } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { FileText } from "lucide-react";
 
 interface Absence {
   absence_id: number;
-  etudiant_nom: string;
-  date_absence: string;
+  etudiant?: {
+    etudiant_nom: string;
+    etudiant_prenom: string;
+  };
+  seance?: {
+    date_seance: string;
+    matiere?: {
+      matiere_nom: string;
+    };
+  };
 }
 
 interface PieceFormProps {
-  formData: {
-    pieceJust_id?: number;
-    absence_id?: number;
-    motif?: "Maladie" | "Evénement familial" | "Autres";
-    pieceJust_file?: File | string | null; // File pour nouvel upload, string pour existant
-    pieceJust_description?: string;
-    existing_file_name?: string;
-  };
+  formData: any;
   setFormData: (data: any) => void;
   errors: any;
   onSubmit: (e: React.FormEvent) => void;
@@ -29,7 +30,54 @@ const PieceForm: React.FC<PieceFormProps> = ({
   onSubmit,
   absences,
 }) => {
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const [searchText, setSearchText] = useState("");
+  const [filterDate, setFilterDate] = useState("");
+  const [filterMatiere, setFilterMatiere] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // 🔹 Extraire les matières uniques pour le select
+  const matieres = Array.from(
+    new Set(absences.map((a) => a.seance?.matiere?.matiere_nom).filter(Boolean))
+  );
+
+  // 🔹 Filtrer absences par nom, date et matière
+  const filteredAbsences = absences.filter((absence) => {
+    const fullName = `${absence.etudiant?.etudiant_nom ?? ""} ${
+      absence.etudiant?.etudiant_prenom ?? ""
+    }`.toLowerCase();
+    const matiereName = absence.seance?.matiere?.matiere_nom ?? "";
+    const matchName =
+      searchText === "" || fullName.includes(searchText.toLowerCase());
+    const matchDate =
+      filterDate === "" || absence.seance?.date_seance === filterDate;
+    const matchMatiere = filterMatiere === "" || matiereName === filterMatiere;
+    return matchName && matchDate && matchMatiere;
+  });
+
+  // 🔒 fermer dropdown si clique à l'extérieur
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelect = (absence: Absence) => {
+    setFormData({ ...formData, absence_id: absence.absence_id });
+    setSearchText(
+      `${absence.etudiant?.etudiant_nom} ${absence.etudiant?.etudiant_prenom} — ${absence.seance?.matiere?.matiere_nom} — ${absence.seance?.date_seance}`
+    );
+    setDropdownOpen(false);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFormData({ ...formData, pieceJust_file: e.target.files[0] });
     }
@@ -40,27 +88,71 @@ const PieceForm: React.FC<PieceFormProps> = ({
       onSubmit={onSubmit}
       className="p-6 space-y-5 bg-white rounded-2xl shadow-lg"
     >
-      {/* Select Absence */}
-      <div>
+      {/* Champ Autocomplete Absence */}
+      <div ref={dropdownRef} className="relative">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Absence *
         </label>
+        {/* Filtrer par matière (liste déroulante) */}
         <select
-          value={formData.absence_id || ""}
-          onChange={(e) =>
-            setFormData({ ...formData, absence_id: Number(e.target.value) })
-          }
-          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
-            errors?.absence_id ? "border-red-500" : "border-gray-300"
-          }`}
+          value={filterMatiere}
+          onChange={(e) => setFilterMatiere(e.target.value)}
+          className="mt-2 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 border-gray-300"
         >
-          <option value="">Sélectionner une absence</option>
-          {absences.map((absence) => (
-            <option key={absence.absence_id} value={absence.absence_id}>
-              {absence.etudiant_nom} - {absence.date_absence}
+          <option value="">Toutes les matières</option>
+          {matieres.map((matiere) => (
+            <option key={matiere} value={matiere}>
+              {matiere}
             </option>
           ))}
         </select>
+
+        {/* Filtrer par date */}
+        <input
+          type="date"
+          value={filterDate}
+          onChange={(e) => setFilterDate(e.target.value)}
+          className="mt-2 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 border-gray-300"
+        />
+        {/* Recherche par nom */}
+        <input
+          type="text"
+          value={searchText}
+          onChange={(e) => {
+            setSearchText(e.target.value);
+            setDropdownOpen(true);
+          }}
+          onClick={() => setDropdownOpen(true)}
+          placeholder="Tapez un nom ou sélectionnez"
+          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
+            errors?.absence_id ? "border-red-500" : "border-gray-300"
+          }`}
+        />
+
+        {/* Liste déroulante */}
+        {dropdownOpen && (
+          <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+            {filteredAbsences.length > 0 ? (
+              filteredAbsences.map((absence) => (
+                <div
+                  key={absence.absence_id}
+                  onClick={() => handleSelect(absence)}
+                  className="px-4 py-2 cursor-pointer hover:bg-indigo-100"
+                >
+                  {absence.etudiant?.etudiant_nom}{" "}
+                  {absence.etudiant?.etudiant_prenom}
+                  {/* {absence.seance?.matiere?.matiere_nom} —{" "} */}
+                  {/* {absence.seance?.date_seance} */}
+                </div>
+              ))
+            ) : (
+              <div className="px-4 py-2 text-gray-500">
+                Aucune absence trouvée
+              </div>
+            )}
+          </div>
+        )}
+
         {errors?.absence_id && (
           <p className="text-red-500 text-sm mt-1">{errors.absence_id}</p>
         )}
@@ -73,9 +165,7 @@ const PieceForm: React.FC<PieceFormProps> = ({
         </label>
         <select
           value={formData.motif || ""}
-          onChange={(e) =>
-            setFormData({ ...formData, motif: e.target.value as any })
-          }
+          onChange={(e) => setFormData({ ...formData, motif: e.target.value })}
           className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
             errors?.motif ? "border-red-500" : "border-gray-300"
           }`}
@@ -85,9 +175,6 @@ const PieceForm: React.FC<PieceFormProps> = ({
           <option value="Evénement familial">Evénement familial</option>
           <option value="Autres">Autres</option>
         </select>
-        {errors?.motif && (
-          <p className="text-red-500 text-sm mt-1">{errors.motif}</p>
-        )}
       </div>
 
       {/* Description */}
@@ -101,16 +188,9 @@ const PieceForm: React.FC<PieceFormProps> = ({
             setFormData({ ...formData, pieceJust_description: e.target.value })
           }
           rows={3}
-          placeholder="Ajouter une description optionnelle..."
-          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
-            errors?.pieceJust_description ? "border-red-500" : "border-gray-300"
-          }`}
+          placeholder="Ajouter une description..."
+          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 border-gray-300"
         />
-        {errors?.pieceJust_description && (
-          <p className="text-red-500 text-sm mt-1">
-            {errors.pieceJust_description}
-          </p>
-        )}
       </div>
 
       {/* Fichier */}
@@ -123,24 +203,6 @@ const PieceForm: React.FC<PieceFormProps> = ({
           onChange={handleFileChange}
           className="w-full text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 cursor-pointer"
         />
-        {/* Afficher fichier sélectionné ou existant */}
-        {formData.pieceJust_file &&
-          typeof formData.pieceJust_file === "object" && (
-            <p className="text-gray-600 text-sm mt-1">
-              Fichier sélectionné :{" "}
-              <span className="font-medium">
-                {formData.pieceJust_file.name}
-              </span>
-            </p>
-          )}
-        {!formData.pieceJust_file && formData.pieceJust_id && (
-          <p className="text-gray-600 text-sm mt-1">
-            Fichier actuel :{" "}
-            <span className="font-medium">
-              {formData.existing_file_name || "Aucun fichier"}
-            </span>
-          </p>
-        )}
       </div>
 
       {/* Bouton */}
