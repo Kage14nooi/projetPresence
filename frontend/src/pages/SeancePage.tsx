@@ -4,13 +4,13 @@ import {
   createSeance,
   updateSeance,
   deleteSeance,
-  toggleSeanceActive, // <- ajoute cette fonction
+  toggleSeanceActive,
 } from "../services/SeanceService";
-
 import { UserPlus } from "lucide-react";
 import { getMatieres } from "../services/MatiereService";
 import SeanceList from "../composants/Sceance/SeanceList";
 import SeanceModal from "../composants/Sceance/SeanceModal";
+import ConfirmationModal from "../composants/Modal/Confirmation";
 
 const initialFormData = {
   seance_id: null,
@@ -27,6 +27,11 @@ const SeancePage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [errors, setErrors] = useState<any>({});
   const [loading, setLoading] = useState(true);
+
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [seanceToDelete, setSeanceToDelete] = useState<number | null>(null);
+  const [isUpdateConfirmOpen, setIsUpdateConfirmOpen] = useState(false);
+  const [formDataToUpdate, setFormDataToUpdate] = useState<any>(null);
 
   const fetchSeances = async () => {
     try {
@@ -63,31 +68,63 @@ const SeancePage: React.FC = () => {
       return;
     }
 
-    try {
-      if (formData.seance_id) await updateSeance(formData.seance_id, formData);
-      else await createSeance(formData);
-
+    if (formData.seance_id) {
+      // modification → ouvrir modal de confirmation
+      setFormDataToUpdate(formData);
+      setIsUpdateConfirmOpen(true);
       setIsModalOpen(false);
+    } else {
+      try {
+        await createSeance(formData);
+        setIsModalOpen(false);
+        setFormData(initialFormData);
+        setErrors({});
+        fetchSeances();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const handleDelete = (id: number) => {
+    setSeanceToDelete(id);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!seanceToDelete) return;
+
+    try {
+      await deleteSeance(seanceToDelete);
+      setSeances((prev) => prev.filter((s) => s.seance_id !== seanceToDelete));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsConfirmOpen(false);
+      setSeanceToDelete(null);
+    }
+  };
+
+  const confirmUpdate = async () => {
+    if (!formDataToUpdate) return;
+
+    try {
+      await updateSeance(formDataToUpdate.seance_id, formDataToUpdate);
       setFormData(initialFormData);
       setErrors({});
       fetchSeances();
     } catch (err) {
       console.error(err);
+    } finally {
+      setIsUpdateConfirmOpen(false);
+      setFormDataToUpdate(null);
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (confirm("Voulez-vous vraiment supprimer cette séance ?")) {
-      await deleteSeance(id);
-      fetchSeances();
-    }
-  };
-
-  // ✅ Fonction pour activer/désactiver la séance
   const handleToggleActive = async (seanceId: number) => {
     try {
       await toggleSeanceActive(seanceId);
-      fetchSeances(); // recharge la liste après le toggle
+      fetchSeances();
     } catch (err) {
       console.error(err);
     }
@@ -122,9 +159,33 @@ const SeancePage: React.FC = () => {
             setErrors({});
           }}
           onDelete={handleDelete}
-          onToggleActive={handleToggleActive} // <- ajouté
+          onToggleActive={handleToggleActive}
         />
       )}
+
+      {/* MODAL DE CONFIRMATION MODIFICATION */}
+      <ConfirmationModal
+        isOpen={isUpdateConfirmOpen}
+        type="info"
+        title="Modifier la séance"
+        message="Voulez-vous vraiment enregistrer les modifications pour cette séance ?"
+        confirmText="Modifier"
+        cancelText="Annuler"
+        onConfirm={confirmUpdate}
+        onCancel={() => setIsUpdateConfirmOpen(false)}
+      />
+
+      {/* MODAL DE CONFIRMATION SUPPRESSION */}
+      <ConfirmationModal
+        isOpen={isConfirmOpen}
+        type="danger"
+        title="Supprimer la séance"
+        message="Voulez-vous vraiment supprimer cette séance ? Cette action est irréversible."
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        onConfirm={confirmDelete}
+        onCancel={() => setIsConfirmOpen(false)}
+      />
 
       <SeanceModal
         isOpen={isModalOpen}

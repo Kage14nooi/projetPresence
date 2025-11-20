@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 import {
   getProfesseurs,
   createProfesseur,
   updateProfesseur,
   deleteProfesseur,
 } from "../services/ProfesseurService";
-// import { getRoles } from "../services/roleService";
 import ProfesseurList from "../composants/Professeur/ProfesseurList";
 import ProfesseurModal from "../composants/Professeur/ProfesseurModal";
+import ConfirmationModal from "../composants/Modal/Confirmation";
 import { UserPlus, Users } from "lucide-react";
 
 const initialFormData = {
@@ -16,16 +19,21 @@ const initialFormData = {
   professeur_prenom: "",
   professeur_mail: "",
   professeur_tel: "",
-  //   role_id: "",
 };
 
 const ProfesseurPage: React.FC = () => {
   const [professeurs, setProfesseurs] = useState<any[]>([]);
   const [formData, setFormData] = useState<any>(initialFormData);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  //   const [roles, setRoles] = useState<any[]>([]);
   const [errors, setErrors] = useState<any>({});
   const [loading, setLoading] = useState(true);
+
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [professeurToDelete, setProfesseurToDelete] = useState<number | null>(
+    null
+  );
+  const [isUpdateConfirmOpen, setIsUpdateConfirmOpen] = useState(false);
+  const [formDataToUpdate, setFormDataToUpdate] = useState<any>(null);
 
   const fetchProfesseurs = async () => {
     try {
@@ -38,18 +46,8 @@ const ProfesseurPage: React.FC = () => {
     }
   };
 
-  //   const fetchRoles = async () => {
-  //     try {
-  //       const data = await getRoles();
-  //       setRoles(data);
-  //     } catch (err) {
-  //       console.error("Erreur fetch roles:", err);
-  //     }
-  //   };
-
   useEffect(() => {
     fetchProfesseurs();
-    // fetchRoles();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -65,30 +63,78 @@ const ProfesseurPage: React.FC = () => {
       return;
     }
 
-    try {
-      if (formData.professeur_id) {
-        await updateProfesseur(formData.professeur_id, formData);
-      } else {
+    if (formData.professeur_id) {
+      // modification → ouvrir modal de confirmation
+      setFormDataToUpdate(formData);
+      setIsUpdateConfirmOpen(true);
+      setIsModalOpen(false);
+    } else {
+      // création directe
+      try {
         await createProfesseur(formData);
+        setIsModalOpen(false);
+        setFormData(initialFormData);
+        setErrors({});
+        fetchProfesseurs();
+        toast.success("Séance ajoutée avec succès !");
+      } catch (err: any) {
+        console.error(err);
       }
+    }
+  };
+
+  const handleDelete = (id: number) => {
+    setProfesseurToDelete(id);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    console.log("confirmDelete called");
+    console.log("professeurToDelete:", professeurToDelete);
+
+    if (professeurToDelete === null) {
+      console.warn("Aucun professeur sélectionné pour suppression");
+      return;
+    }
+
+    try {
+      console.log("Appel à deleteProfesseur...");
+      const response = await deleteProfesseur(professeurToDelete);
+      console.log("deleteProfesseur response:", response);
+
+      // Mise à jour locale de la liste
+      setProfesseurs((prev) =>
+        prev.filter((p) => p.professeur_id !== professeurToDelete)
+      );
+      toast.success("Le professeur a été supprimé avec succès !");
+    } catch (err) {
+      console.error("Erreur lors de la suppression:", err);
+    } finally {
+      setIsConfirmOpen(false);
+      setProfesseurToDelete(null);
+    }
+  };
+  const confirmUpdate = async () => {
+    if (!formDataToUpdate) return;
+
+    try {
+      await updateProfesseur(formDataToUpdate.professeur_id, formDataToUpdate);
       setIsModalOpen(false);
       setFormData(initialFormData);
       setErrors({});
       fetchProfesseurs();
-    } catch (err: any) {
-      console.error(err);
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    if (confirm("Voulez-vous vraiment supprimer ce professeur ?")) {
-      await deleteProfesseur(id);
-      fetchProfesseurs();
+      toast.success("Séance modifiée avec succès !");
+    } catch (err) {
+      console.error("Erreur lors de la modification:", err);
+    } finally {
+      setIsUpdateConfirmOpen(false);
+      setFormDataToUpdate(null);
     }
   };
 
   return (
     <div className="h-screen w-full flex flex-col bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+      {/* HEADER */}
       <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="px-6 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-4">
@@ -118,6 +164,7 @@ const ProfesseurPage: React.FC = () => {
         </div>
       </div>
 
+      {/* LIST */}
       <div className="flex-1 overflow-auto px-6 py-6">
         {loading ? (
           <div className="h-full flex items-center justify-center bg-white rounded-xl shadow-lg">
@@ -136,11 +183,35 @@ const ProfesseurPage: React.FC = () => {
               setIsModalOpen(true);
               setErrors({});
             }}
-            onDelete={handleDelete}
+            onDelete={handleDelete} // ← déclenche le modal
           />
         )}
       </div>
 
+      {/* CONFIRMATION MODAL */}
+      <ConfirmationModal
+        isOpen={isUpdateConfirmOpen}
+        type="info"
+        title="Modifier le professeur"
+        message="Voulez-vous vraiment enregistrer les modifications pour ce professeur ?"
+        confirmText="Modifier"
+        cancelText="Annuler"
+        onConfirm={confirmUpdate}
+        onCancel={() => setIsUpdateConfirmOpen(false)}
+      />
+
+      <ConfirmationModal
+        isOpen={isConfirmOpen}
+        type="danger"
+        title="Supprimer le professeur"
+        message="Voulez-vous vraiment supprimer ce professeur ? Cette action est irréversible."
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        onConfirm={confirmDelete} // ← fonction corrigée
+        onCancel={() => setIsConfirmOpen(false)}
+      />
+
+      {/* FORM MODAL */}
       <ProfesseurModal
         isOpen={isModalOpen}
         onClose={() => {
@@ -151,8 +222,19 @@ const ProfesseurPage: React.FC = () => {
         formData={formData}
         setFormData={setFormData}
         onSubmit={handleSubmit}
-        // roles={roles}
         errors={errors}
+      />
+
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
       />
     </div>
   );
