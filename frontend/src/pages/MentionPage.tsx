@@ -7,7 +7,7 @@ import {
 } from "../services/MentionService";
 import MentionList from "../composants/Mention/MentionList";
 import MentionModal from "../composants/Mention/MentionModal";
-import { UserPlus } from "lucide-react";
+import { UserPlus, BookOpen } from "lucide-react";
 
 const initialFormData = { mention_id: null, mention_nom: "" };
 
@@ -53,7 +53,7 @@ const MentionPage: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (confirm("Voulez-vous vraiment supprimer ce Mention ?")) {
+    if (confirm("Voulez-vous vraiment supprimer cette mention ?")) {
       await deleteMention(id);
       fetchMention();
     }
@@ -61,19 +61,32 @@ const MentionPage: React.FC = () => {
 
   return (
     <div className="h-full w-full flex flex-col bg-gray-100 p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Gestion des Mention</h1>
-        <button
-          onClick={() => {
-            setFormData(initialFormData);
-            setIsModalOpen(true);
-            setErrors({});
-          }}
-          className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          <UserPlus className="w-5 h-5" />
-          <span>Ajouter un Mention</span>
-        </button>
+      {/* Header avec gradient et icône */}
+      <div className="flex items-center space-x-4 mb-6">
+        <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl p-3 shadow-lg">
+          <BookOpen className="w-7 h-7 text-white" />
+        </div>
+        <div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            Gestion des Mentions
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Gérez et consultez la liste des mentions
+          </p>
+        </div>
+        <div className="ml-auto">
+          <button
+            onClick={() => {
+              setFormData(initialFormData);
+              setIsModalOpen(true);
+              setErrors({});
+            }}
+            className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          >
+            <UserPlus className="w-5 h-5" />
+            <span>Ajouter une Mention</span>
+          </button>
+        </div>
       </div>
 
       {loading ? (
