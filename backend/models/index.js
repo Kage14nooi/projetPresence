@@ -318,6 +318,22 @@ LogAppareil.belongsTo(Etudiant, { foreignKey: "etudiant_id" });
 LogAppareil.belongsTo(Seance, { foreignKey: "seance_id" });
 LogAppareil.belongsTo(Matiere, { foreignKey: "matiere_id" });
 
+// ✅ AJOUT : Suppression en cascade pour Presence
+Seance.hasMany(Presence, {
+  foreignKey: "seance_id",
+  as: "presences",
+  onDelete: "CASCADE", // ← Suppression en cascade
+  hooks: true,
+});
+
+// ✅ AJOUT : Suppression en cascade pour Absence
+Seance.hasMany(Absence, {
+  foreignKey: "seance_id",
+  as: "absences",
+  onDelete: "CASCADE", // ← Suppression en cascade
+  hooks: true,
+});
+
 // =========================
 // Export
 // =========================

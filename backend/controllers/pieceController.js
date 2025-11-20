@@ -1,4 +1,10 @@
-const { PieceJustificative, Absence } = require("../models"); // Assure-toi que le modèle est exporté correctement
+const {
+  PieceJustificative,
+  Absence,
+  Etudiant,
+  Seance,
+  Matiere,
+} = require("../models"); // Assure-toi que le modèle est exporté correctement
 const fs = require("fs");
 const path = require("path");
 
@@ -36,15 +42,40 @@ exports.createPiece = async (req, res) => {
 };
 
 // ---------------- READ ALL ----------------
+
 exports.getAllPieces = async (req, res) => {
   try {
-    const pieces = await PieceJustificative.findAll();
+    const pieces = await PieceJustificative.findAll({
+      include: [
+        {
+          model: Absence,
+          include: [
+            {
+              model: Etudiant,
+              attributes: [
+                "etudiant_nom",
+                "etudiant_prenom",
+                "etudiant_matricule",
+              ], // ← Ajoutez ceci
+            },
+            {
+              model: Seance,
+              include: [{ model: Matiere, attributes: ["matiere_nom"] }],
+            },
+          ],
+        },
+      ],
+    });
+
+    console.log(JSON.stringify(pieces, null, 2)); // pour vérifier la structure
+
     res.json(pieces);
   } catch (error) {
     console.error("Erreur récupération pièces :", error);
-    res
-      .status(500)
-      .json({ error: "Impossible de récupérer les pièces justificatives" });
+    res.status(500).json({
+      error: "Impossible de récupérer les pièces justificatives",
+      details: error.message,
+    });
   }
 };
 

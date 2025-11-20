@@ -6,11 +6,10 @@ import {
   deleteSeance,
   toggleSeanceActive,
 } from "../services/SeanceService";
-import { UserPlus } from "lucide-react";
+import { CalendarDays, Plus } from "lucide-react";
 import { getMatieres } from "../services/MatiereService";
 import SeanceList from "../composants/Sceance/SeanceList";
 import SeanceModal from "../composants/Sceance/SeanceModal";
-import ConfirmationModal from "../composants/Modal/Confirmation";
 
 const initialFormData = {
   seance_id: null,
@@ -28,11 +27,7 @@ const SeancePage: React.FC = () => {
   const [errors, setErrors] = useState<any>({});
   const [loading, setLoading] = useState(true);
 
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [seanceToDelete, setSeanceToDelete] = useState<number | null>(null);
-  const [isUpdateConfirmOpen, setIsUpdateConfirmOpen] = useState(false);
-  const [formDataToUpdate, setFormDataToUpdate] = useState<any>(null);
-
+  // Récupérer la liste des séances
   const fetchSeances = async () => {
     try {
       const data = await getSeances();
@@ -44,6 +39,7 @@ const SeancePage: React.FC = () => {
     }
   };
 
+  // Récupérer la liste des matières
   const fetchMatieres = async () => {
     try {
       const data = await getMatieres();
@@ -58,69 +54,56 @@ const SeancePage: React.FC = () => {
     fetchMatieres();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.matiere_id || !formData.date_seance) {
-      setErrors({
-        matiere_id: "La matière est requise",
-        date_seance: "La date est requise",
-      });
+  // Gestion de la soumission du formulaire
+  const handleSubmit = async (data: any) => {
+    // Validation simple côté frontend
+    const newErrors: any = {};
+    if (!data.matiere_id) newErrors.matiere_id = "La matière est requise";
+    if (!data.date_seance) newErrors.date_seance = "La date est requise";
+    if (!data.heure_debut)
+      newErrors.heure_debut = "L'heure de début est requise";
+    if (!data.heure_fin) newErrors.heure_fin = "L'heure de fin est requise";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
-    if (formData.seance_id) {
-      // modification → ouvrir modal de confirmation
-      setFormDataToUpdate(formData);
-      setIsUpdateConfirmOpen(true);
-      setIsModalOpen(false);
-    } else {
-      try {
-        await createSeance(formData);
-        setIsModalOpen(false);
-        setFormData(initialFormData);
-        setErrors({});
-        fetchSeances();
-      } catch (err) {
-        console.error(err);
+    try {
+      if (data.seance_id) {
+        await updateSeance(data.seance_id, data);
+      } else {
+        await createSeance(data);
       }
-    }
-  };
 
-  const handleDelete = (id: number) => {
-    setSeanceToDelete(id);
-    setIsConfirmOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (!seanceToDelete) return;
-
-    try {
-      await deleteSeance(seanceToDelete);
-      setSeances((prev) => prev.filter((s) => s.seance_id !== seanceToDelete));
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsConfirmOpen(false);
-      setSeanceToDelete(null);
-    }
-  };
-
-  const confirmUpdate = async () => {
-    if (!formDataToUpdate) return;
-
-    try {
-      await updateSeance(formDataToUpdate.seance_id, formDataToUpdate);
+      setIsModalOpen(false);
       setFormData(initialFormData);
       setErrors({});
       fetchSeances();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-    } finally {
-      setIsUpdateConfirmOpen(false);
-      setFormDataToUpdate(null);
+      setErrors(err.response?.data?.errors || {});
     }
   };
 
+  // Supprimer une séance
+  const handleDelete = async (id: number) => {
+    if (!confirm("Voulez-vous vraiment supprimer cette séance ?")) return;
+
+    try {
+      await deleteSeance(id);
+      fetchSeances();
+    } catch (err: any) {
+      console.error("Erreur lors de la suppression:", err);
+      alert(
+        `Erreur lors de la suppression: ${
+          err.response?.data?.error || err.message || "Erreur inconnue"
+        }`
+      );
+    }
+  };
+
+  // Activer / désactiver une séance
   const handleToggleActive = async (seanceId: number) => {
     try {
       await toggleSeanceActive(seanceId);
@@ -131,62 +114,71 @@ const SeancePage: React.FC = () => {
   };
 
   return (
-    <div className="h-full w-full flex flex-col bg-gray-100 p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Gestion des Séances</h1>
-        <button
-          onClick={() => {
-            setFormData(initialFormData);
-            setIsModalOpen(true);
-            setErrors({});
-          }}
-          className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          <UserPlus className="w-5 h-5" />
-          <span>Ajouter une Séance</span>
-        </button>
+    <div className="h-screen h-full w-full flex flex-col bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+      {/* En-tête de la page */}
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="px-6 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-4">
+              <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl p-3 shadow-lg">
+                <CalendarDays className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  Gestion des Séances
+                </h1>
+                <p className="text-sm text-gray-500 mt-1">
+                  Gérez et planifiez les séances de cours
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setFormData(initialFormData);
+                setIsModalOpen(true);
+                setErrors({});
+              }}
+              className="group flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+            >
+              <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+              <span className="font-semibold">Ajouter une séance</span>
+            </button>
+          </div>
+        </div>
       </div>
 
-      {loading ? (
-        <p>Chargement...</p>
-      ) : (
-        <SeanceList
-          seances={seances}
-          matieres={matieres}
-          onEdit={(s) => {
-            setFormData(s);
-            setIsModalOpen(true);
-            setErrors({});
-          }}
-          onDelete={handleDelete}
-          onToggleActive={handleToggleActive}
-        />
-      )}
+      {/* Conteneur principal avec la liste */}
+      <div className="flex-1 overflow-auto px-6 py-6">
+        <div className="h-full">
+          {loading ? (
+            <div className="h-full flex items-center justify-center bg-white rounded-xl shadow-lg">
+              <div className="text-center">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                <p className="text-gray-600 font-medium">
+                  Chargement des séances...
+                </p>
+              </div>
+            </div>
+          ) : (
+            <SeanceList
+              seances={seances}
+              onEdit={(s) => {
+                setFormData({
+                  ...s,
+                  date_debut_initiale: s.date_seance,
+                  heure_debut_initiale: s.heure_debut,
+                });
+                setIsModalOpen(true);
+                setErrors({});
+              }}
+              onDelete={handleDelete}
+              onToggleActive={handleToggleActive}
+            />
+          )}
+        </div>
+      </div>
 
-      {/* MODAL DE CONFIRMATION MODIFICATION */}
-      <ConfirmationModal
-        isOpen={isUpdateConfirmOpen}
-        type="info"
-        title="Modifier la séance"
-        message="Voulez-vous vraiment enregistrer les modifications pour cette séance ?"
-        confirmText="Modifier"
-        cancelText="Annuler"
-        onConfirm={confirmUpdate}
-        onCancel={() => setIsUpdateConfirmOpen(false)}
-      />
-
-      {/* MODAL DE CONFIRMATION SUPPRESSION */}
-      <ConfirmationModal
-        isOpen={isConfirmOpen}
-        type="danger"
-        title="Supprimer la séance"
-        message="Voulez-vous vraiment supprimer cette séance ? Cette action est irréversible."
-        confirmText="Supprimer"
-        cancelText="Annuler"
-        onConfirm={confirmDelete}
-        onCancel={() => setIsConfirmOpen(false)}
-      />
-
+      {/* Modal */}
       <SeanceModal
         isOpen={isModalOpen}
         onClose={() => {
@@ -198,6 +190,7 @@ const SeancePage: React.FC = () => {
         setFormData={setFormData}
         onSubmit={handleSubmit}
         errors={errors}
+        setErrors={setErrors}
         matieres={matieres}
       />
     </div>

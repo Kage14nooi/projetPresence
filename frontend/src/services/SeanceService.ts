@@ -110,3 +110,9 @@ export const getAbsences = async () => {
     return [];
   }
 };
+
+// ✅ NOUVELLE FONCTION : Vérifier et fermer les séances expirées
+export const checkExpiredSeances = async () => {
+  const response = await axios.get(`${API_URL}/check-expired`);
+  return response.data;
+};

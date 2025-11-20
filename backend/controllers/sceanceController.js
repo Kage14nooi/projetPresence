@@ -106,48 +106,331 @@ exports.updateSeance = async (req, res) => {
 };
 
 // ---------------- DELETE ----------------
+// exports.deleteSeance = async (req, res) => {
+//   try {
+//     const seance = await Seance.findByPk(req.params.id);
+//     if (!seance) return res.status(404).json({ error: "Séance non trouvée" });
+
+//     await seance.destroy();
+//     res.json({ message: "Séance supprimée avec succès" });
+//   } catch (err) {
+//     console.error("❌ ERREUR LORS DE LA SUPPRESSION DE SEANCE :", err);
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+// ---------------- DELETE ----------------
+// ---------------- DELETE ----------------
 exports.deleteSeance = async (req, res) => {
   try {
     const seance = await Seance.findByPk(req.params.id);
     if (!seance) return res.status(404).json({ error: "Séance non trouvée" });
 
-    await seance.destroy();
+    await seance.destroy(); // ← Les Presence, Absence et LogAppareil seront supprimés automatiquement
     res.json({ message: "Séance supprimée avec succès" });
   } catch (err) {
     console.error("❌ ERREUR LORS DE LA SUPPRESSION DE SEANCE :", err);
     res.status(500).json({ error: err.message });
   }
 };
+// exports.toggleSeanceActive = async (req, res) => {
+//   try {
+//     const seanceId = req.params.id;
 
+//     // 🔍 Récupérer la séance + matière associée
+//     const seance = await Seance.findByPk(seanceId, {
+//       include: [{ model: Matiere }],
+//     });
+
+//     if (!seance) {
+//       return res.status(404).json({ error: "Séance non trouvée" });
+//     }
+
+//     // ⚙️ Inverser l’état actif/inactif
+//     seance.is_active = !seance.is_active;
+//     await seance.save();
+
+//     // ✅ Si la séance devient active → création des fiches de présence
+//     if (seance.is_active) {
+//       const matiere = seance.matiere;
+
+//       if (!matiere) {
+//         return res.status(400).json({
+//           error:
+//             "Impossible de créer la fiche de présence : aucune matière liée à cette séance.",
+//         });
+//       }
+
+//       // 🎓 Récupérer tous les étudiants du même parcours/mention/niveau
+//       const etudiants = await Etudiant.findAll({
+//         where: {
+//           parcours_id: matiere.parcours_id,
+//           mention_id: matiere.mention_id,
+//           niveau_id: matiere.niveau_id,
+//         },
+//       });
+
+//       if (etudiants.length === 0) {
+//         return res.status(200).json({
+//           message:
+//             "Séance activée, mais aucun étudiant trouvé correspondant aux critères.",
+//           seance,
+//         });
+//       }
+
+//       // 🧾 Créer la présence pour chaque étudiant (Absent par défaut)
+//       for (const etudiant of etudiants) {
+//         await Presence.findOrCreate({
+//           where: {
+//             etudiant_id: etudiant.etudiant_id,
+//             seance_id: seance.seance_id,
+//           },
+//           defaults: {
+//             status: "A", // Absent par défaut
+//             heure_entree: null,
+//             heure_sortie: null,
+//           },
+//         });
+//       }
+
+//       return res.json({
+//         message: `✅ Séance activée (${etudiants.length} fiches de présence créées).`,
+//         seance,
+//       });
+//     }
+
+//     // 🚫 Si la séance est désactivée
+//     return res.json({
+//       message: "🚫 Séance désactivée avec succès.",
+//       seance,
+//     });
+//   } catch (err) {
+//     console.error("❌ ERREUR LORS DU TOGGLE DE SÉANCE :", err);
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+
+// exports.toggleSeanceActive = async (req, res) => {
+//   try {
+//     const seanceId = req.params.id;
+
+//     // 🔍 Récupérer la séance + matière associée
+//     const seance = await Seance.findByPk(seanceId, {
+//       include: [{ model: Matiere, as: "matiere" }],
+//     });
+
+//     if (!seance) {
+//       return res.status(404).json({ error: "Séance non trouvée" });
+//     }
+
+//     // ⏰ Vérifier si la séance est terminée
+//     const now = new Date();
+//     const seanceDate = new Date(seance.date_seance);
+//     const [heureFinHours, heureFinMinutes] = seance.heure_fin.split(":");
+
+//     seanceDate.setHours(
+//       parseInt(heureFinHours),
+//       parseInt(heureFinMinutes),
+//       0,
+//       0
+//     );
+
+//     const isSeanceTerminee = now > seanceDate;
+
+//     // 🚫 Si la séance est terminée et qu'on essaie de l'activer
+//     if (isSeanceTerminee && !seance.is_active) {
+//       return res.status(400).json({
+//         error: "Impossible d'activer une séance terminée.",
+//         message: "Cette séance est déjà terminée.",
+//       });
+//     }
+
+//     // 🔄 Si la séance est terminée et active, la désactiver automatiquement
+//     if (isSeanceTerminee && seance.is_active) {
+//       seance.is_active = false;
+//       await seance.save();
+
+//       // 📋 Créer les absences pour tous les étudiants qui ont status "A"
+//       const presencesAbsentes = await Presence.findAll({
+//         where: {
+//           seance_id: seance.seance_id,
+//           status: "A",
+//         },
+//         include: [{ model: Etudiant, as: "etudiant" }],
+//       });
+
+//       let absencesCreees = 0;
+
+//       for (const presence of presencesAbsentes) {
+//         // Vérifier si l'absence n'existe pas déjà
+//         const [absence, created] = await Absence.findOrCreate({
+//           where: {
+//             etudiant_id: presence.etudiant_id,
+//             seance_id: seance.seance_id,
+//           },
+//           defaults: {
+//             statut: "Absent",
+//             justification_status: "En attente",
+//           },
+//         });
+
+//         if (created) {
+//           absencesCreees++;
+
+//           // 📧 Optionnel : Créer une notification pour l'étudiant
+//           await Notification.create({
+//             etudiant_id: presence.etudiant_id,
+//             objet: "Absence enregistrée",
+//             description: `Vous avez été marqué absent pour la séance du ${seance.date_seance}. Veuillez justifier votre absence si nécessaire.`,
+//             date_envoi: new Date(),
+//           });
+//         }
+//       }
+
+//       return res.json({
+//         message: `🚫 Séance terminée et désactivée automatiquement. ${absencesCreees} absence(s) enregistrée(s).`,
+//         seance,
+//         absences: absencesCreees,
+//       });
+//     }
+
+//     // ⚙️ Toggle normal : Inverser l'état actif/inactif
+//     seance.is_active = !seance.is_active;
+//     await seance.save();
+
+//     // ✅ Si la séance devient active → création des fiches de présence
+//     if (seance.is_active) {
+//       const matiere = seance.matiere;
+
+//       if (!matiere) {
+//         return res.status(400).json({
+//           error:
+//             "Impossible de créer la fiche de présence : aucune matière liée à cette séance.",
+//         });
+//       }
+
+//       // 🎓 Récupérer tous les étudiants du même parcours/mention/niveau
+//       const etudiants = await Etudiant.findAll({
+//         where: {
+//           parcours_id: matiere.parcours_id,
+//           mention_id: matiere.mention_id,
+//           niveau_id: matiere.niveau_id,
+//         },
+//       });
+
+//       if (etudiants.length === 0) {
+//         return res.status(200).json({
+//           message:
+//             "Séance activée, mais aucun étudiant trouvé correspondant aux critères.",
+//           seance,
+//         });
+//       }
+
+//       // 🧾 Créer la présence pour chaque étudiant (Absent par défaut)
+//       for (const etudiant of etudiants) {
+//         await Presence.findOrCreate({
+//           where: {
+//             etudiant_id: etudiant.etudiant_id,
+//             seance_id: seance.seance_id,
+//           },
+//           defaults: {
+//             status: "A", // Absent par défaut
+//             heure_entree: null,
+//             heure_sortie: null,
+//           },
+//         });
+//       }
+
+//       return res.json({
+//         message: `✅ Séance activée (${etudiants.length} fiches de présence créées).`,
+//         seance,
+//       });
+//     }
+
+//     // 🚫 Si la séance est désactivée manuellement
+//     return res.json({
+//       message: "🚫 Séance désactivée avec succès.",
+//       seance,
+//     });
+//   } catch (err) {
+//     console.error("❌ ERREUR LORS DU TOGGLE DE SÉANCE :", err);
+//     res.status(500).json({ error: err.message });
+//   }
+// };
 exports.toggleSeanceActive = async (req, res) => {
   try {
     const seanceId = req.params.id;
-
-    // 🔍 Récupérer la séance + matière associée
     const seance = await Seance.findByPk(seanceId, {
-      include: [{ model: Matiere }],
+      include: [{ model: Matiere, as: "matiere" }],
     });
+    if (!seance) return res.status(404).json({ error: "Séance non trouvée" });
 
-    if (!seance) {
-      return res.status(404).json({ error: "Séance non trouvée" });
-    }
+    const now = new Date();
+    const seanceDateFin = new Date(seance.date_seance);
+    const [heureFinH, heureFinM] = seance.heure_fin.split(":").map(Number);
+    seanceDateFin.setHours(heureFinH, heureFinM, 0, 0);
 
-    // ⚙️ Inverser l’état actif/inactif
-    seance.is_active = !seance.is_active;
-    await seance.save();
+    const isSeanceTerminee = now >= seanceDateFin;
 
-    // ✅ Si la séance devient active → création des fiches de présence
-    if (seance.is_active) {
-      const matiere = seance.matiere;
+    // 🚫 Séance terminée et inactive → impossible d'activer
+    if (isSeanceTerminee && !seance.is_active) {
+      // Créer les absences pour les étudiants absents
+      const presencesAbsentes = await Presence.findAll({
+        where: { seance_id: seance.seance_id, status: "A" },
+      });
 
-      if (!matiere) {
-        return res.status(400).json({
-          error:
-            "Impossible de créer la fiche de présence : aucune matière liée à cette séance.",
+      for (const presence of presencesAbsentes) {
+        await Absence.findOrCreate({
+          where: {
+            etudiant_id: presence.etudiant_id,
+            seance_id: seance.seance_id,
+          },
+          defaults: { statut: "Absent", justification_status: "En attente" },
         });
       }
 
-      // 🎓 Récupérer tous les étudiants du même parcours/mention/niveau
+      return res.status(400).json({
+        error: "Impossible d'activer une séance terminée",
+        message: "Les absences ont été enregistrées automatiquement",
+        seance,
+      });
+    }
+
+    // 🔄 Séance terminée et active → désactiver automatiquement
+    if (isSeanceTerminee && seance.is_active) {
+      seance.is_active = false;
+      await seance.save();
+
+      const presencesAbsentes = await Presence.findAll({
+        where: { seance_id: seance.seance_id, status: "A" },
+      });
+
+      for (const presence of presencesAbsentes) {
+        await Absence.findOrCreate({
+          where: {
+            etudiant_id: presence.etudiant_id,
+            seance_id: seance.seance_id,
+          },
+          defaults: { statut: "Absent", justification_status: "En attente" },
+        });
+      }
+
+      return res.json({
+        message:
+          "Séance terminée → désactivée automatiquement et absences enregistrées",
+        seance,
+      });
+    }
+
+    // 🔧 Toggle normal pour séance non terminée
+    seance.is_active = !seance.is_active;
+    await seance.save();
+
+    // ✅ Si activation normale → créer fiches de présence
+    if (seance.is_active) {
+      const matiere = seance.matiere;
+      if (!matiere)
+        return res.status(400).json({ error: "Aucune matière associée" });
+
       const etudiants = await Etudiant.findAll({
         where: {
           parcours_id: matiere.parcours_id,
@@ -156,43 +439,27 @@ exports.toggleSeanceActive = async (req, res) => {
         },
       });
 
-      if (etudiants.length === 0) {
-        return res.status(200).json({
-          message:
-            "Séance activée, mais aucun étudiant trouvé correspondant aux critères.",
-          seance,
-        });
-      }
-
-      // 🧾 Créer la présence pour chaque étudiant (Absent par défaut)
       for (const etudiant of etudiants) {
         await Presence.findOrCreate({
           where: {
             etudiant_id: etudiant.etudiant_id,
             seance_id: seance.seance_id,
           },
-          defaults: {
-            status: "A", // Absent par défaut
-            heure_entree: null,
-            heure_sortie: null,
-          },
+          defaults: { status: "A", heure_entree: null, heure_sortie: null },
         });
       }
 
       return res.json({
-        message: `✅ Séance activée (${etudiants.length} fiches de présence créées).`,
+        message: `Séance activée (${etudiants.length} fiches de présence créées)`,
         seance,
       });
     }
 
-    // 🚫 Si la séance est désactivée
-    return res.json({
-      message: "🚫 Séance désactivée avec succès.",
-      seance,
-    });
+    // 🚫 Désactivation normale
+    return res.json({ message: "Séance désactivée avec succès", seance });
   } catch (err) {
-    console.error("❌ ERREUR LORS DU TOGGLE DE SÉANCE :", err);
-    res.status(500).json({ error: err.message });
+    console.error("ERREUR toggleSeanceActive :", err);
+    return res.status(500).json({ error: err.message });
   }
 };
 
@@ -288,6 +555,82 @@ exports.getSeanceAbsents = async (req, res) => {
     res.json(absents);
   } catch (err) {
     console.error("❌ Erreur lors de la récupération des absents :", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+// Fonction pour désactiver automatiquement les séances terminées
+exports.checkAndCloseExpiredSeances = async (req, res) => {
+  try {
+    const now = new Date();
+
+    // Récupérer toutes les séances actives
+    const seancesActives = await Seance.findAll({
+      where: { is_active: true },
+      include: [{ model: Matiere, as: "matiere" }],
+    });
+
+    let seancesDesactivees = 0;
+    let absencesTotales = 0;
+
+    for (const seance of seancesActives) {
+      const seanceDate = new Date(seance.date_seance);
+      const [heureFinHours, heureFinMinutes] = seance.heure_fin.split(":");
+      seanceDate.setHours(
+        parseInt(heureFinHours),
+        parseInt(heureFinMinutes),
+        0,
+        0
+      );
+
+      // Si la séance est terminée
+      if (now > seanceDate) {
+        // Désactiver la séance
+        seance.is_active = false;
+        await seance.save();
+        seancesDesactivees++;
+
+        // Créer les absences
+        const presencesAbsentes = await Presence.findAll({
+          where: {
+            seance_id: seance.seance_id,
+            status: "A",
+          },
+        });
+
+        for (const presence of presencesAbsentes) {
+          const [absence, created] = await Absence.findOrCreate({
+            where: {
+              etudiant_id: presence.etudiant_id,
+              seance_id: seance.seance_id,
+            },
+            defaults: {
+              statut: "Absent",
+              justification_status: "En attente",
+            },
+          });
+
+          if (created) {
+            absencesTotales++;
+
+            // Notification
+            await Notification.create({
+              etudiant_id: presence.etudiant_id,
+              objet: "Absence enregistrée",
+              description: `Vous avez été marqué absent pour la séance du ${seance.date_seance}.`,
+              date_envoi: new Date(),
+            });
+          }
+        }
+      }
+    }
+
+    res.json({
+      message: `✅ Vérification terminée.`,
+      seancesDesactivees,
+      absencesCreees: absencesTotales,
+    });
+  } catch (err) {
+    console.error("❌ ERREUR LORS DE LA VÉRIFICATION DES SÉANCES :", err);
     res.status(500).json({ error: err.message });
   }
 };

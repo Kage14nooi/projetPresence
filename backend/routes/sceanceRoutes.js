@@ -25,5 +25,7 @@ router.patch("/:id/toggle", sceanceController.toggleSeanceActive);
 router.get("/presence/:id", sceanceController.getPresenceBySeance);
 
 router.get("/absences/:id", sceanceController.getSeanceAbsents);
+// Dans votre fichier routes
+router.get("/check-expired", sceanceController.checkAndCloseExpiredSeances);
 
 module.exports = router;
