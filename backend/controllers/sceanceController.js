@@ -372,8 +372,12 @@ exports.toggleSeanceActive = async (req, res) => {
     const isSeanceTerminee = now >= seanceDateFin;
 
     // 🚫 Séance terminée et inactive → impossible d'activer
+    console.log("aty amin back ", seances.is_active);
+
     if (isSeanceTerminee && !seance.is_active) {
+      console.log("anaty condition");
       // Créer les absences pour les étudiants absents
+      console.log("anaty condion", seance.seance_id);
       const presencesAbsentes = await Presence.findAll({
         where: { seance_id: seance.seance_id, status: "A" },
       });

@@ -106,6 +106,8 @@ const SeancePage: React.FC = () => {
   // Activer / désactiver une séance
   const handleToggleActive = async (seanceId: number) => {
     try {
+      console.log("tonga eto ", seanceId);
+
       await toggleSeanceActive(seanceId);
       fetchSeances();
     } catch (err) {

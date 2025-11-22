@@ -60,6 +60,8 @@ export const deleteSeance = async (id: number) => {
 // 🔀 Activer / désactiver une séance
 export const toggleSeanceActive = async (id: number) => {
   try {
+    console.log("service", id);
+
     const res = await axios.patch(`${API_URL}/${id}/toggle`);
     return res.data;
   } catch (err: any) {

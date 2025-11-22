@@ -5,6 +5,6 @@ sequelize
   .then(() => console.log("Connexion MySQL réussie"))
   .catch((err) => console.error("Erreur connexion MySQL:", err));
 
-sequelize.sync();
+// sequelize.sync();
 
 module.exports = sequelize;

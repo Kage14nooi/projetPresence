@@ -20,6 +20,7 @@ exports.createLog = async (req, res) => {
     //   "direction": "IN",
     //   "timestamp": "2025-11-12T15:42:00Z"
     // }
+    console.log("🚀 Requête reçue depuis l'appareil :", req.body);
 
     const { device_id, user_id, event_type, direction, timestamp } = req.body;
 

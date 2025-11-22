@@ -217,7 +217,7 @@ cron.schedule("* * * * *", async () => {
           }
         }
 
-        console.log(`Séance ${seance.seance_id} ACTIVÉE automatiquement`);
+        // console.log(`Séance ${seance.seance_id} ACTIVÉE automatiquement`);
 
         // Notifier le frontend
         io.emit("seance_auto_update", {
@@ -251,9 +251,9 @@ cron.schedule("* * * * *", async () => {
           });
         }
 
-        console.log(
-          `Séance ${seance.seance_id} TERMINÉE → désactivée + absences`
-        );
+        // console.log(
+        //   `Séance ${seance.seance_id} TERMINÉE → désactivée + absences`
+        // );
 
         // Notifier le frontend
         io.emit("seance_auto_update", {
@@ -268,6 +268,11 @@ cron.schedule("* * * * *", async () => {
 });
 
 // Démarrage serveur
-server.listen(3001, () => {
-  console.log("Backend Node.js démarré sur http://localhost:3001");
+// server.listen(3001, "0.0.0.0", () => {
+//   console.log("Backend Node.js démarré sur http://0.0.0.0:3001");
+// });
+
+const PORT = 3001;
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`Backend Node.js démarré sur http://192.168.1.10:${PORT}`);
 });
