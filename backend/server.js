@@ -358,89 +358,87 @@ async function updateSeanceStatus(seance) {
   }
 }
 
+if (now >= dateDebut) {
+  seance.is_active = true;
+  await seance.save();
 
-      if (now >= dateDebut) {
-        seance.is_active = true;
-        await seance.save();
+  // Créer les présences
+  const matiere = await Matiere.findByPk(seance.matiere_id);
+  if (matiere) {
+    const etudiants = await Etudiant.findAll({
+      where: {
+        parcours_id: matiere.parcours_id,
+        mention_id: matiere.mention_id,
+        niveau_id: matiere.niveau_id,
+      },
+    });
 
-        // Créer les présences
-        const matiere = await Matiere.findByPk(seance.matiere_id);
-        if (matiere) {
-          const etudiants = await Etudiant.findAll({
-            where: {
-              parcours_id: matiere.parcours_id,
-              mention_id: matiere.mention_id,
-              niveau_id: matiere.niveau_id,
-            },
-          });
-
-          for (const etudiant of etudiants) {
-            await Presence.findOrCreate({
-              where: {
-                etudiant_id: etudiant.etudiant_id,
-                seance_id: seance.seance_id,
-              },
-              defaults: { status: "A", heure_entree: null, heure_sortie: null },
-            });
-          }
-        }
-
-        // console.log(`Séance ${seance.seance_id} ACTIVÉE automatiquement`);
-
-        // Notifier le frontend
-        io.emit("seance_auto_update", {
+    for (const etudiant of etudiants) {
+      await Presence.findOrCreate({
+        where: {
+          etudiant_id: etudiant.etudiant_id,
           seance_id: seance.seance_id,
-          is_active: true,
-        });
-      }
+        },
+        defaults: { status: "A", heure_entree: null, heure_sortie: null },
+      });
     }
-
-    // ================== DÉSACTIVATION ==================
-    const seancesActives = await Seance.findAll({ where: { is_active: true } });
-
-    for (const seance of seancesActives) {
-      const [hF, mF] = seance.heure_fin.split(":").map(Number);
-      const dateFin = new Date(seance.date_seance);
-      dateFin.setHours(hF, mF, 0, 0);
-
-      if (now >= dateFin) {
-        seance.is_active = false;
-        await seance.save();
-
-        // Enregistrer les absences
-        const presencesAbsentes = await Presence.findAll({
-          where: { seance_id: seance.seance_id, status: "A" },
-        });
-
-        for (const p of presencesAbsentes) {
-          await Absence.findOrCreate({
-            where: { etudiant_id: p.etudiant_id, seance_id: seance.seance_id },
-            defaults: { statut: "Absent", justification_status: "En attente" },
-          });
-        }
-
-        // console.log(
-        //   `Séance ${seance.seance_id} TERMINÉE → désactivée + absences`
-        // );
-
-        // Notifier le frontend
-        io.emit("seance_auto_update", {
-          seance_id: seance.seance_id,
-          is_active: false,
-        });
-      }
-// Vérification automatique toutes les minutes
-setInterval(async () => {
-  try {
-    const seances = await Seance.findAll();
-    for (const seance of seances) {
-      await updateSeanceStatus(seance);
-
-    }
-  } catch (err) {
-    console.error("Erreur lors de la vérification des séances :", err);
   }
-}, 60000);
+
+  // console.log(`Séance ${seance.seance_id} ACTIVÉE automatiquement`);
+
+  // Notifier le frontend
+  io.emit("seance_auto_update", {
+    seance_id: seance.seance_id,
+    is_active: true,
+  });
+}
+
+// ================== DÉSACTIVATION ==================
+const seancesActives = await Seance.findAll({ where: { is_active: true } });
+
+for (const seance of seancesActives) {
+  const [hF, mF] = seance.heure_fin.split(":").map(Number);
+  const dateFin = new Date(seance.date_seance);
+  dateFin.setHours(hF, mF, 0, 0);
+
+  if (now >= dateFin) {
+    seance.is_active = false;
+    await seance.save();
+
+    // Enregistrer les absences
+    const presencesAbsentes = await Presence.findAll({
+      where: { seance_id: seance.seance_id, status: "A" },
+    });
+
+    for (const p of presencesAbsentes) {
+      await Absence.findOrCreate({
+        where: { etudiant_id: p.etudiant_id, seance_id: seance.seance_id },
+        defaults: { statut: "Absent", justification_status: "En attente" },
+      });
+    }
+
+    // console.log(
+    //   `Séance ${seance.seance_id} TERMINÉE → désactivée + absences`
+    // );
+
+    // Notifier le frontend
+    io.emit("seance_auto_update", {
+      seance_id: seance.seance_id,
+      is_active: false,
+    });
+  }
+  // Vérification automatique toutes les minutes
+  setInterval(async () => {
+    try {
+      const seances = await Seance.findAll();
+      for (const seance of seances) {
+        await updateSeanceStatus(seance);
+      }
+    } catch (err) {
+      console.error("Erreur lors de la vérification des séances :", err);
+    }
+  }, 60000);
+}
 
 // Démarrage serveur
 // server.listen(3001, "0.0.0.0", () => {
