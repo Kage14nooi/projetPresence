@@ -3,6 +3,7 @@ import {
   Edit2,
   Trash2,
   Clock,
+  PlayCircle,
   BookOpen,
   Calendar,
   ChevronLeft,
@@ -11,7 +12,6 @@ import {
   ChevronsRight,
   Search,
   CheckCircle,
-  PlayCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
@@ -34,77 +34,64 @@ const SeanceList: React.FC<SeanceListProps> = ({
 }) => {
   const navigate = useNavigate();
   const [localSeances, setLocalSeances] = useState(seances);
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [searchTerm, setSearchTerm] = useState("");
 
-  // Sync props → state avec tri
+  // Initialisation locale avec locked si séance terminée
   useEffect(() => {
-    const sorted = [...seances].sort((a, b) => {
-      const dateA = new Date(`${a.date_seance} ${a.heure_debut}`);
-      const dateB = new Date(`${b.date_seance} ${b.heure_debut}`);
-      return dateB.getTime() - dateA.getTime();
-    });
+    const sorted = seances
+      .map((s) => ({
+        ...s,
+        locked:
+          s.heure_fin &&
+          new Date(`${s.date_seance} ${s.heure_fin}`) < new Date(),
+      }))
+      .sort(
+        (a, b) =>
+          new Date(`${b.date_seance} ${b.heure_debut}`).getTime() -
+          new Date(`${a.date_seance} ${a.heure_debut}`).getTime()
+      );
     setLocalSeances(sorted);
   }, [seances]);
 
-  // Écoute Socket.io
   useEffect(() => {
-    socket.on(
-      "seance_auto_update",
-      ({ seance_id, is_active }: { seance_id: number; is_active: boolean }) => {
-        setLocalSeances((prev) =>
-          prev.map((s) => (s.seance_id === seance_id ? { ...s, is_active } : s))
-        );
-      }
-    );
+    const handleSeanceUpdate = (updatedSeance: any) => {
+      setLocalSeances((prev) =>
+        prev.map((s) => {
+          if (s.seance_id !== updatedSeance.seance_id) return s;
+          const locked =
+            s.locked ||
+            (s.heure_fin &&
+              new Date(`${s.date_seance} ${s.heure_fin}`) < new Date());
+          return {
+            ...s,
+            is_active: locked ? false : updatedSeance.is_active,
+          };
+        })
+      );
+    };
 
+    socket.on("seance_auto_update", handleSeanceUpdate);
     return () => {
-      socket.off("seance_auto_update");
+      socket.off("seance_auto_update", handleSeanceUpdate);
     };
   }, []);
 
-  // Séance terminée ?
-  const isSeanceTerminee = (seance: any) => {
-    const now = new Date();
-    if (!seance.heure_fin) return false;
-    const [h, m] = seance.heure_fin.split(":").map(Number);
-
-    const date = new Date(seance.date_seance);
-    date.setHours(h, m, 0, 0);
-
-    return now > date;
-  };
-
-  // Séance en cours ?
-  const isSeanceEnCours = (seance: any) => {
-    const now = new Date();
-    const [dh, dm] = seance.heure_debut.split(":").map(Number);
-    const [fh, fm] = seance.heure_fin.split(":").map(Number);
-
-    const debut = new Date(seance.date_seance);
-    debut.setHours(dh, dm, 0, 0);
-
-    const fin = new Date(seance.date_seance);
-    fin.setHours(fh, fm, 0, 0);
-
-    return now >= debut && now <= fin;
-  };
-
+  // Toggle séance
   const handleToggle = async (s: any) => {
-    if (isSeanceTerminee(s)) {
+    if (s.locked) {
       alert("Cette séance est déjà terminée.");
       return;
     }
-
     const wasActive = s.is_active;
     await onToggleActive(s.seance_id);
-
     if (!wasActive) navigate("/presence");
   };
 
-  const getStatusBadge = (seance: any) => {
-    if (isSeanceTerminee(seance)) {
+  // Badge de statut
+  const getStatusBadge = (s: any) => {
+    if (s.locked) {
       return (
         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
           <Clock className="w-3 h-3 mr-1" />
@@ -112,8 +99,7 @@ const SeanceList: React.FC<SeanceListProps> = ({
         </span>
       );
     }
-
-    if (isSeanceEnCours(seance)) {
+    if (s.is_active) {
       return (
         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200 animate-pulse">
           <PlayCircle className="w-3 h-3 mr-1" />
@@ -121,7 +107,6 @@ const SeanceList: React.FC<SeanceListProps> = ({
         </span>
       );
     }
-
     return (
       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 border border-yellow-200">
         <Clock className="w-3 h-3 mr-1" />À venir
@@ -129,7 +114,7 @@ const SeanceList: React.FC<SeanceListProps> = ({
     );
   };
 
-  // Filtrage des séances
+  // Filtrage
   const filteredSeances = localSeances.filter((s) => {
     if (!searchTerm) return true;
     const lower = searchTerm.toLowerCase();
@@ -144,11 +129,9 @@ const SeanceList: React.FC<SeanceListProps> = ({
   // Statistiques
   const stats = {
     total: filteredSeances.length,
-    enCours: filteredSeances.filter((s) => isSeanceEnCours(s)).length,
-    aVenir: filteredSeances.filter(
-      (s) => !isSeanceTerminee(s) && !isSeanceEnCours(s)
-    ).length,
-    terminees: filteredSeances.filter((s) => isSeanceTerminee(s)).length,
+    enCours: filteredSeances.filter((s) => s.is_active && !s.locked).length,
+    aVenir: filteredSeances.filter((s) => !s.locked && !s.is_active).length,
+    terminees: filteredSeances.filter((s) => s.locked).length,
   };
 
   // Pagination
@@ -185,7 +168,7 @@ const SeanceList: React.FC<SeanceListProps> = ({
   };
 
   return (
-    <div className="flex flex-col min-h-full">
+    <div className="flex flex-col min-h-full bg-gray-50">
       {/* En-tête avec style unifié */}
       <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-t-xl p-6 shadow-lg">
         <div className="flex items-center justify-between mb-4">
@@ -211,7 +194,7 @@ const SeanceList: React.FC<SeanceListProps> = ({
 
         {/* Statistiques en cartes blanches */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 border border-white/20 transform transition-all hover:scale-105">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm mb-1">Total</p>
@@ -225,7 +208,7 @@ const SeanceList: React.FC<SeanceListProps> = ({
             </div>
           </div>
 
-          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 border border-white/20 transform transition-all hover:scale-105">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm mb-1">En Cours</p>
@@ -239,7 +222,7 @@ const SeanceList: React.FC<SeanceListProps> = ({
             </div>
           </div>
 
-          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 border border-white/20 transform transition-all hover:scale-105">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm mb-1">À Venir</p>
@@ -253,7 +236,7 @@ const SeanceList: React.FC<SeanceListProps> = ({
             </div>
           </div>
 
-          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 border border-white/20 transform transition-all hover:scale-105">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm mb-1">Terminées</p>
@@ -279,14 +262,14 @@ const SeanceList: React.FC<SeanceListProps> = ({
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full pl-12 pr-4 py-3 rounded-lg bg-white/90 backdrop-blur-sm border-2 border-white/20 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+            className="w-full pl-12 pr-4 py-3 rounded-lg bg-white/90 backdrop-blur-sm border-2 border-white/20 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/50 transition-all placeholder-gray-400"
           />
         </div>
       </div>
 
       {/* Table avec style unifié */}
-      <div className="flex-1 bg-white overflow-hidden">
-        <div className="overflow-x-auto flex-1">
+      <div className="flex-1 bg-white overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="sticky top-0 bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-indigo-200 z-10">
               <tr>
@@ -332,114 +315,111 @@ const SeanceList: React.FC<SeanceListProps> = ({
                   </td>
                 </tr>
               ) : (
-                currentSeances.map((s, i) => {
-                  const terminee = isSeanceTerminee(s);
-
-                  return (
-                    <tr
-                      key={s.seance_id}
-                      className={`transition-all duration-200 ${
-                        terminee
-                          ? "bg-gray-100/50 opacity-70"
-                          : `hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 ${
-                              i % 2 === 0 ? "bg-white" : "bg-gray-50/50"
-                            }`
-                      }`}
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-md">
-                            <BookOpen className="w-5 h-5" />
-                          </div>
-                          <span className="font-semibold text-gray-900">
-                            {s.matiere?.matiere_nom || "N/A"}
-                          </span>
+                currentSeances.map((s, i) => (
+                  <tr
+                    key={s.seance_id}
+                    className={`transition-all duration-200 ${
+                      s.locked
+                        ? "bg-gray-100/50 opacity-70"
+                        : `hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 ${
+                            i % 2 === 0 ? "bg-white" : "bg-gray-50/50"
+                          }`
+                    }`}
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-md">
+                          <BookOpen className="w-5 h-5" />
                         </div>
-                      </td>
+                        <span className="font-semibold text-gray-900">
+                          {s.matiere?.matiere_nom || "N/A"}
+                        </span>
+                      </div>
+                    </td>
 
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-indigo-500" />
-                          <span className="text-sm font-medium text-gray-900">
-                            {s.date_seance}
-                          </span>
-                        </div>
-                      </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-indigo-500" />
+                        <span className="text-sm font-medium text-gray-900">
+                          {s.date_seance}
+                        </span>
+                      </div>
+                    </td>
 
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-indigo-500" />
-                          <span className="text-sm text-gray-600">
-                            {s.heure_debut} - {s.heure_fin}
-                          </span>
-                        </div>
-                      </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-indigo-500" />
+                        <span className="text-sm text-gray-600">
+                          {s.heure_debut} - {s.heure_fin}
+                        </span>
+                      </div>
+                    </td>
 
-                      <td className="px-6 py-4 text-center">
-                        {getStatusBadge(s)}
-                      </td>
+                    <td className="px-6 py-4 text-center">
+                      {getStatusBadge(s)}
+                    </td>
 
-                      {/* Toggle */}
-                      <td className="px-6 py-4 text-center">
-                        <button
-                          onClick={() => handleToggle(s)}
-                          disabled={terminee}
-                          className={`relative inline-flex h-6 w-12 items-center rounded-full transition-all shadow-sm ${
-                            terminee
-                              ? "bg-gray-300 cursor-not-allowed"
-                              : s.is_active
-                              ? "bg-green-500 shadow-green-200"
-                              : "bg-gray-300 hover:bg-gray-400"
+                    <td className="px-6 py-4 text-center">
+                      <button
+                        type="button"
+                        onClick={() => handleToggle(s)}
+                        disabled={s.locked}
+                        className={`relative inline-flex h-6 w-12 items-center rounded-full transition-all shadow-sm ${
+                          s.locked
+                            ? "bg-gray-300 cursor-not-allowed"
+                            : s.is_active
+                            ? "bg-green-500 shadow-green-200"
+                            : "bg-gray-300 hover:bg-gray-400"
+                        }`}
+                        title={
+                          s.locked
+                            ? "Séance terminée"
+                            : s.is_active
+                            ? "Désactiver la séance"
+                            : "Activer la séance"
+                        }
+                      >
+                        <span
+                          className={`inline-block h-5 w-5 transform bg-white rounded-full transition-transform shadow-md ${
+                            s.is_active ? "translate-x-6" : "translate-x-1"
                           }`}
-                          title={
-                            terminee
-                              ? "Séance terminée"
-                              : s.is_active
-                              ? "Désactiver la séance"
-                              : "Activer la séance"
-                          }
+                        />
+                      </button>
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-center space-x-2">
+                        <button
+                          type="button"
+                          onClick={() => !s.locked && onEdit(s)}
+                          disabled={s.locked}
+                          className={`group relative p-2 rounded-lg transition-all duration-200 shadow-sm ${
+                            s.locked
+                              ? "text-gray-400 cursor-not-allowed"
+                              : "text-blue-600 hover:text-white hover:bg-blue-600 hover:shadow-md"
+                          }`}
+                          title={s.locked ? "Séance terminée" : "Modifier"}
                         >
-                          <span
-                            className={`inline-block h-5 w-5 transform bg-white rounded-full transition-transform shadow-md ${
-                              s.is_active ? "translate-x-6" : "translate-x-1"
-                            }`}
-                          />
+                          <Edit2 className="w-5 h-5" />
                         </button>
-                      </td>
 
-                      {/* Actions */}
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-center space-x-2">
-                          <button
-                            onClick={() => !terminee && onEdit(s)}
-                            disabled={terminee}
-                            className={`group relative p-2 rounded-lg transition-all duration-200 shadow-sm ${
-                              terminee
-                                ? "text-gray-400 cursor-not-allowed"
-                                : "text-blue-600 hover:text-white hover:bg-blue-600 hover:shadow-md"
-                            }`}
-                            title={terminee ? "Séance terminée" : "Modifier"}
-                          >
-                            <Edit2 className="w-5 h-5" />
-                          </button>
-
-                          <button
-                            onClick={() => !terminee && onDelete(s.seance_id)}
-                            disabled={terminee}
-                            className={`group relative p-2 rounded-lg transition-all duration-200 shadow-sm ${
-                              terminee
-                                ? "text-gray-400 cursor-not-allowed"
-                                : "text-red-600 hover:text-white hover:bg-red-600 hover:shadow-md"
-                            }`}
-                            title={terminee ? "Séance terminée" : "Supprimer"}
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
+                        <button
+                          type="button"
+                          onClick={() => !s.locked && onDelete(s.seance_id)}
+                          disabled={s.locked}
+                          className={`group relative p-2 rounded-lg transition-all duration-200 shadow-sm ${
+                            s.locked
+                              ? "text-gray-400 cursor-not-allowed"
+                              : "text-red-600 hover:text-white hover:bg-red-600 hover:shadow-md"
+                          }`}
+                          title={s.locked ? "Séance terminée" : "Supprimer"}
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
@@ -448,8 +428,8 @@ const SeanceList: React.FC<SeanceListProps> = ({
 
       {/* Pagination avec style unifié */}
       {filteredSeances.length > 0 && (
-        <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-t border-gray-200 rounded-b-xl">
-          <div className="flex items-center justify-between">
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-t border-gray-200 rounded-b-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center space-x-4">
               <p className="text-sm text-gray-600">
                 Affichage de{" "}
@@ -475,7 +455,7 @@ const SeanceList: React.FC<SeanceListProps> = ({
                     setItemsPerPage(Number(e.target.value));
                     setCurrentPage(1);
                   }}
-                  className="px-3 py-1 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                  className="px-3 py-1 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer"
                 >
                   <option value={5}>5</option>
                   <option value={10}>10</option>
