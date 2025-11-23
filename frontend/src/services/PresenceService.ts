@@ -92,6 +92,23 @@ export const presenceService = {
       throw new Error("Impossible d'exporter la fiche pour prévisualisation");
     return res.blob();
   },
+  // 🔹 Importer depuis Excel
+  async importFromExcel(seanceId: number, file: File): Promise<any> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch(`${API_BASE}/presences/import/${seanceId}`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Impossible d'importer le fichier Excel : ${errorText}`);
+    }
+
+    return res.json();
+  },
 
   // 🔹 Générer automatiquement les absences pour une séance
   async generateAbsences(seanceId: number, date: string) {
@@ -101,6 +118,26 @@ export const presenceService = {
       body: JSON.stringify({ seance_id: seanceId, date }),
     });
     if (!res.ok) throw new Error("Impossible de générer les absences");
+    return res.json();
+  },
+  // 🔹 Importer depuis CSV Hikvision
+  async importFromHikvisionCSV(seanceId: number, file: File): Promise<any> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch(
+      `${API_BASE}/presences/import-hikvision/${seanceId}`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Impossible d'importer le CSV Hikvision : ${errorText}`);
+    }
+
     return res.json();
   },
 };

@@ -188,6 +188,8 @@ const EtudiantPage: React.FC = () => {
           ) : (
             <EtudiantList
               etudiants={etudiants}
+              niveaux={niveau}
+              parcours={parcours}
               onEdit={(e) => {
                 setFormData(e);
                 setIsModalOpen(true);

@@ -11,6 +11,15 @@ import {
   HiOutlineClock,
   HiOutlineDocumentText,
 } from "react-icons/hi";
+import {
+  FileUp,
+  Upload,
+  Download,
+  Printer,
+  Check,
+  Loader2,
+  Eye,
+} from "lucide-react";
 
 interface PresenceFicheProps {
   seance: Seance;
@@ -22,6 +31,9 @@ const PresenceFiche: React.FC<PresenceFicheProps> = ({ seance }) => {
   const [loading, setLoading] = useState(true);
   const [excelData, setExcelData] = useState<any[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
+  // State pour fichier CSV
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [importing, setImporting] = useState(false);
 
   useEffect(() => {
     const fetchFiche = async () => {
@@ -92,6 +104,50 @@ const PresenceFiche: React.FC<PresenceFicheProps> = ({ seance }) => {
   //   XLSX.utils.book_append_sheet(workbook, worksheet, "Présences");
   //   XLSX.writeFile(workbook, `FichePrésence_${seance.seance_id}.xlsx`);
   // };
+  // -----------------------------
+
+  // -----------------------------
+  // Fonction d'import CSV Hikvision
+  const handleImportCSV = async () => {
+    if (!csvFile) {
+      alert("Veuillez sélectionner un fichier CSV.");
+      return;
+    }
+
+    setImporting(true);
+    try {
+      const result = await presenceService.importFromHikvisionCSV(
+        seance.seance_id,
+        csvFile
+      );
+      console.log("Résultat import CSV :", result);
+      alert(result.message || "Import terminé.");
+
+      // Recharger la fiche après import
+      const presencesRaw = await presenceService.getFichePresence(
+        seance.seance_id
+      );
+      const ficheFormatted: FichePresence = {
+        seance: presencesRaw.seance,
+        presences: presencesRaw.presences.map(
+          (p): Presence => ({
+            ...p,
+            etudiant_matricule: p.etudiant?.etudiant_matricule ?? "Inconnu",
+            etudiant_nom: p.etudiant?.etudiant_nom ?? "Inconnu",
+            etudiant_prenom: p.etudiant?.etudiant_prenom ?? "",
+          })
+        ),
+      };
+      setFiche(ficheFormatted);
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message);
+    } finally {
+      setImporting(false);
+      setCsvFile(null);
+    }
+  };
+
   const handleDownloadExcel = () => {
     const presencesFiltered = presencesToDisplay || [];
 
@@ -290,27 +346,85 @@ const PresenceFiche: React.FC<PresenceFicheProps> = ({ seance }) => {
         </div>
 
         {/* Boutons Excel */}
-        <div className="flex space-x-2 mt-2 sm:mt-0">
+        <div className="flex flex-wrap items-center gap-3 p-4 bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl shadow-sm">
           {/* <button
             onClick={handlePreviewExcel}
-            className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition flex items-center space-x-1"
+            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
           >
-            <HiOutlineDocumentText />
-            <span>Prévisualiser Excel</span>
+            <Eye className="w-4 h-4" />
+            Prévisualiser Excel
           </button> */}
+
+          {/* <div className="h-8 w-px bg-gradient-to-b from-transparent via-gray-300 to-transparent"></div> */}
+          <div className="flex items-center gap-3">
+            <label className="relative cursor-pointer group">
+              <input
+                type="file"
+                accept=".csv"
+                onChange={(e) => {
+                  if (e.target.files?.length) setCsvFile(e.target.files[0]);
+                }}
+                className="hidden"
+              />
+
+              <span className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-purple-200 text-gray-700 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all duration-200 font-medium text-sm group-hover:shadow-md">
+                <FileUp className="w-4 h-4 text-purple-600" />
+
+                {csvFile ? (
+                  <span className="flex items-center gap-2">
+                    <span className="flex items-center justify-center w-5 h-5 bg-green-500 text-white rounded-full text-xs font-bold">
+                      ✓
+                    </span>
+                    <span className="text-green-700 font-semibold">
+                      {csvFile.name}
+                    </span>
+                  </span>
+                ) : (
+                  "Choisir fichier CSV"
+                )}
+              </span>
+              {/* TOOLTIP SPÉCIAL HIKVISION */}
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 hidden group-hover:block bg-gray-900 text-white text-xs px-3 py-1 rounded-lg shadow-lg whitespace-nowrap z-50">
+                Importer le CSV Hikvision : logs de présence (Attendance),
+                format UTF-8.
+              </div>
+            </label>
+
+            <button
+              onClick={handleImportCSV}
+              disabled={importing || !csvFile}
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:from-gray-400 disabled:to-gray-500"
+            >
+              {importing ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Import en cours...
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4" />
+                  Importer CSV Hikvision
+                </>
+              )}
+            </button>
+          </div>
+
+          <div className="h-8 w-px bg-gradient-to-b from-transparent via-gray-300 to-transparent"></div>
+
           <button
             onClick={handleDownloadExcel}
-            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition flex items-center space-x-1"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-green-200 text-gray-700 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all duration-200 font-medium text-sm hover:shadow-md group"
           >
-            <HiOutlineDocumentText />
-            <span>Télécharger Excel</span>
+            <Download className="w-4 h-4 text-green-600 group-hover:text-green-700" />
+            Télécharger Excel
           </button>
+
           <button
             onClick={handlePrint}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition flex items-center space-x-1"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-orange-200 text-gray-700 rounded-xl hover:border-orange-500 hover:bg-orange-50 transition-all duration-200 font-medium text-sm hover:shadow-md group"
           >
-            <HiOutlineDocumentText />
-            <span>Imprimer</span>
+            <Printer className="w-4 h-4 text-orange-600 group-hover:text-orange-700" />
+            Imprimer
           </button>
         </div>
       </div>
