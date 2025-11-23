@@ -60,6 +60,8 @@ export const deleteSeance = async (id: number) => {
 // 🔀 Activer / désactiver une séance
 export const toggleSeanceActive = async (id: number) => {
   try {
+    console.log("service", id);
+
     const res = await axios.patch(`${API_URL}/${id}/toggle`);
     return res.data;
   } catch (err: any) {
@@ -93,6 +95,7 @@ export const toggleSeanceActive = async (id: number) => {
 export const getSeanceAbsences = async (seanceId: number) => {
   try {
     const response = await axios.get(`${API_URL}/absences/${seanceId}`);
+    console.log(response.data);
     return response.data; // renvoie la liste des étudiants absents
   } catch (err) {
     console.error("❌ Erreur lors de la récupération des absents :", err);

@@ -275,20 +275,18 @@
 // server.js
 const http = require("http");
 const { Server } = require("socket.io");
-const app = require("./app"); // ton Express app
-require("./config/database"); // Sequelize et connexion DB
+const app = require("./app");
+require("./config/database");
 const { Seance, Presence, Absence, Etudiant, Matiere } = require("./models");
 
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-// Middleware pour passer io dans les routes si nécessaire
 app.use((req, res, next) => {
   req.io = io;
   next();
 });
 
-// Socket.io : connexion
 io.on("connection", () => {
   console.log("Frontend connecté pour temps réel");
 });
@@ -301,18 +299,13 @@ async function updateSeanceStatus(seance) {
 
   let newStatus = seance.is_active;
 
-  // Activer si début <= maintenant < fin
   if (now >= start && now <= end) newStatus = true;
-
-  // Désactiver si terminé
   if (now > end) newStatus = false;
 
-  // Si le status a changé, sauvegarder et émettre seulement cette séance
   if (newStatus !== seance.is_active) {
     seance.is_active = newStatus;
     await seance.save();
 
-    // Si activation → créer présences
     if (newStatus) {
       const matiere = await Matiere.findByPk(seance.matiere_id);
       if (matiere) {
@@ -323,6 +316,7 @@ async function updateSeanceStatus(seance) {
             niveau_id: matiere.niveau_id,
           },
         });
+
         for (const etudiant of etudiants) {
           await Presence.findOrCreate({
             where: {
@@ -335,20 +329,22 @@ async function updateSeanceStatus(seance) {
       }
     }
 
-    // Si désactivation → enregistrer absences
     if (!newStatus) {
       const presencesAbsentes = await Presence.findAll({
         where: { seance_id: seance.seance_id, status: "A" },
       });
+
       for (const p of presencesAbsentes) {
         await Absence.findOrCreate({
-          where: { etudiant_id: p.etudiant_id, seance_id: seance.seance_id },
+          where: {
+            etudiant_id: p.etudiant_id,
+            seance_id: seance.seance_id,
+          },
           defaults: { statut: "Absent", justification_status: "En attente" },
         });
       }
     }
 
-    // Émettre uniquement pour cette séance
     io.emit("seance_auto_update", {
       seance_id: seance.seance_id,
       is_active: seance.is_active,
@@ -358,19 +354,34 @@ async function updateSeanceStatus(seance) {
   }
 }
 
-// Vérification automatique toutes les minutes
-setInterval(async () => {
-  try {
-    const seances = await Seance.findAll();
-    for (const seance of seances) {
-      await updateSeanceStatus(seance);
-    }
-  } catch (err) {
-    console.error("Erreur lors de la vérification des séances :", err);
-  }
-}, 60000);
+// ========== LE CODE GLOBAL ASYNC DOIT ÊTRE ICI ==========
+async function start() {
+  const now = new Date();
 
-// Démarrage serveur
-server.listen(3001, () => {
-  console.log("Backend Node.js démarré sur http://localhost:3001");
-});
+  // ACTIVATION AUTO
+  const seances = await Seance.findAll();
+  for (const seance of seances) {
+    await updateSeanceStatus(seance);
+  }
+
+  // Vérification automatique toutes les minutes
+  setInterval(async () => {
+    try {
+      const seances = await Seance.findAll();
+      for (const seance of seances) {
+        await updateSeanceStatus(seance);
+      }
+    } catch (err) {
+      console.error("Erreur lors de la vérification des séances :", err);
+    }
+  }, 60000);
+
+  // Lancer le serveur
+  const PORT = 3001;
+  server.listen(PORT, "0.0.0.0", () => {
+    console.log(`Backend Node.js démarré sur http://192.168.1.10:${PORT}`);
+  });
+}
+
+// Lancement de l’application
+start();

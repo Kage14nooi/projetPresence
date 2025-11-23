@@ -11,47 +11,54 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Search,
+  Filter,
 } from "lucide-react";
 
 interface EtudiantListProps {
   etudiants: any[];
+  niveaux: any[];
+  parcours: any[];
   onEdit: (etudiant: any) => void;
   onDelete: (id: number) => void;
 }
 
 const EtudiantList: React.FC<EtudiantListProps> = ({
   etudiants = [],
+  niveaux = [],
+  parcours = [],
   onEdit,
   onDelete,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedNiveau, setSelectedNiveau] = useState("");
+  const [selectedParcours, setSelectedParcours] = useState("");
 
   const etudiantsCount = etudiants?.length || 0;
 
   // Filtrage des étudiants
   const getFilteredEtudiants = () => {
-    if (!searchTerm) return etudiants;
-
     return etudiants.filter((e) => {
       const searchLower = searchTerm.toLowerCase();
-      return (
+      const matchesSearch =
         e.etudiant_nom?.toLowerCase().includes(searchLower) ||
         e.etudiant_prenom?.toLowerCase().includes(searchLower) ||
         e.etudiant_matricule?.toLowerCase().includes(searchLower) ||
-        e.etudiant_mail?.toLowerCase().includes(searchLower) ||
-        e.Parcours?.parcours_nom?.toLowerCase().includes(searchLower) ||
-        e.Niveau?.niveau_nom?.toLowerCase().includes(searchLower) ||
-        e.Mentions?.mention_nom?.toLowerCase().includes(searchLower) ||
-        e.Role?.role_nom?.toLowerCase().includes(searchLower)
-      );
+        e.etudiant_mail?.toLowerCase().includes(searchLower);
+
+      const matchesNiveau =
+        !selectedNiveau || e.niveau?.niveau_nom === selectedNiveau;
+      const matchesParcours =
+        !selectedParcours || e.parcour?.parcours_nom === selectedParcours;
+
+      return matchesSearch && matchesNiveau && matchesParcours;
     });
   };
 
   const filteredEtudiants = getFilteredEtudiants();
 
-  // Pagination
   const totalPages = Math.ceil(filteredEtudiants.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -117,19 +124,71 @@ const EtudiantList: React.FC<EtudiantListProps> = ({
               </p>
             </div>
           </div>
+
+          {/* Toggle filtres */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-2 text-white hover:text-blue-100 font-medium transition-colors"
+          >
+            <Filter className="w-5 h-5" />
+            {showFilters ? "Masquer les filtres" : "Afficher les filtres"}
+          </button>
         </div>
 
         {/* Barre de recherche */}
-        <div className="relative">
+        <div className="relative mb-4">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
-            placeholder="Rechercher par nom, prénom, matricule, email, parcours..."
+            placeholder="Rechercher par nom, prénom, matricule, email..."
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full pl-12 pr-4 py-3 rounded-lg bg-white/90 backdrop-blur-sm border-2 border-white/20 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
           />
         </div>
+
+        {/* Filtres déroulants */}
+        {showFilters && (
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 border border-white/20 flex flex-wrap gap-4">
+            {/* Niveau */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700 mb-1">
+                Niveau
+              </label>
+              <select
+                value={selectedNiveau}
+                onChange={(e) => setSelectedNiveau(e.target.value)}
+                className="px-4 py-2 rounded-lg border border-gray-300 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 transition-all"
+              >
+                <option value="">Tous les niveaux</option>
+                {niveaux.map((n) => (
+                  <option key={n.niveau_id} value={n.niveau_nom}>
+                    {n.niveau_nom}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Parcours */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700 mb-1">
+                Parcours
+              </label>
+              <select
+                value={selectedParcours}
+                onChange={(e) => setSelectedParcours(e.target.value)}
+                className="px-4 py-2 rounded-lg border border-gray-300 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 transition-all"
+              >
+                <option value="">Tous les parcours</option>
+                {parcours.map((p) => (
+                  <option key={p.parcours_id} value={p.parcours_nom}>
+                    {p.parcours_nom}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Table */}
