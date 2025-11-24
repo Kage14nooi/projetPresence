@@ -1,0 +1,31 @@
+sName,sJobNo,sCard,Date,Time,IN/OUT,ReadID,EventMainCode,EventSubCode,AttendanceStatus,SerialNo
+'Mahefa,'1,'NULL,2025-11-01,16:13:37,'IN,1,5, 38,undefined,9
+'Mahefa,'1,'NULL,2025-11-01,17:55:14,'IN,1,5, 38,undefined,15
+'Tsilavina,'2,'NULL,2025-11-22,11:09:11,'IN,1,5, 38,undefined,431
+'Tsilavina,'2,'NULL,2025-11-22,11:44:32,'IN,1,5, 38,undefined,434
+'Tsilavina,'2,'NULL,2025-11-22,11:53:17,'IN,1,5, 38,undefined,438
+'Tsilavina,'2,'NULL,2025-11-22,12:35:18,'IN,1,5, 38,undefined,520
+'Mahefa,'1,'NULL,2025-11-22,12:52:06,'IN,1,5, 38,undefined,569
+'Tsilavina,'2,'NULL,2025-11-22,14:41:51,'IN,1,5, 38,undefined,888
+'Tsilavina,'2,'NULL,2025-11-22,14:52:40,'IN,1,5, 38,undefined,892
+'Mahefa,'1,'NULL,2025-11-22,14:53:16,'IN,1,5, 38,undefined,895
+'Tsilavina,'2,'NULL,2025-11-22,15:03:37,'IN,1,5, 38,undefined,903
+'Tsilavina,'2,'NULL,2025-11-22,15:13:33,'IN,1,5, 38,undefined,983
+'Manda,'3,'NULL,2025-11-22,15:25:50,'IN,1,5, 38,undefined,1025
+'Manda,'3,'NULL,2025-11-22,15:55:28,'IN,1,5, 38,undefined,1154
+'Tsilavina,'2,'NULL,2025-11-23,09:44:52,'IN,1,5, 38,undefined,1217
+'Tsilavina,'2,'NULL,2025-11-23,09:45:24,'IN,1,5, 38,undefined,1221
+'Tsilavina,'2,'NULL,2025-11-23,09:45:47,'IN,1,5, 38,undefined,1224
+'NULL,','NULL,2025-11-01,16:13:56,'IN,1,5, 49,undefined,11
+'NULL,','NULL,2025-11-21,11:39:05,'IN,1,5, 49,undefined,20
+'NULL,','NULL,2025-11-22,11:53:11,'IN,1,5, 49,undefined,436
+'NULL,','NULL,2025-11-22,12:51:39,'IN,1,5, 49,undefined,566
+'NULL,','NULL,2025-11-22,12:51:42,'IN,1,5, 49,undefined,567
+'Tsilavina,'2,'NULL,2025-11-22,15:03:32,'IN,1,5,155,undefined,901
+'NULL,','NULL,2025-11-22,15:21:37,'IN,1,5, 49,undefined,1021
+'NULL,','NULL,2025-11-23,09:44:45,'IN,1,5, 49,undefined,1215
+'NULL,','NULL,2025-11-23,09:45:15,'IN,1,5, 49,undefined,1219
+'NULL,','NULL,2025-11-23,09:46:14,'IN,1,5, 49,undefined,1226
+'NULL,','NULL,2025-11-23,09:46:39,'IN,1,5, 49,undefined,1227
+'NULL,','NULL,2025-11-23,09:46:40,'IN,1,5, 49,undefined,1228
+'NULL,','NULL,2025-11-23,09:46:58,'IN,1,5, 49,undefined,1229

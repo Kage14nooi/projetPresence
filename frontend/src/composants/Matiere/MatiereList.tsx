@@ -8,6 +8,10 @@ import {
   ChevronsRight,
   Search,
   BookOpen,
+  User,
+  GraduationCap,
+  Award,
+  Sparkles,
 } from "lucide-react";
 
 interface MatiereListProps {
@@ -21,14 +25,14 @@ const MatiereList: React.FC<MatiereListProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [searchTerm, setSearchTerm] = useState("");
 
   const matiereCount = matieres?.length || 0;
 
   // Filtrage
-  const filteredMatieres = matieres.filter((m) => {
+  const filtered = matieres.filter((m) => {
     const s = searchTerm.toLowerCase();
     return (
       m.matiere_nom?.toLowerCase().includes(s) ||
@@ -41,15 +45,9 @@ const MatiereList: React.FC<MatiereListProps> = ({
   });
 
   // Pagination
-  const totalPages = Math.ceil(filteredMatieres.length / itemsPerPage) || 1;
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentMatieres = filteredMatieres.slice(startIndex, endIndex);
-
-  const handleItemsPerPageChange = (value: number) => {
-    setItemsPerPage(value);
-    setCurrentPage(1);
-  };
+  const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
+  const start = (currentPage - 1) * itemsPerPage;
+  const currentData = filtered.slice(start, start + itemsPerPage);
 
   const getPageNumbers = () => {
     const pages: any[] = [];
@@ -58,18 +56,10 @@ const MatiereList: React.FC<MatiereListProps> = ({
     if (totalPages <= maxVisible) {
       for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
-      if (currentPage <= 3) {
-        pages.push(1, 2, 3, 4, "...", totalPages);
-      } else if (currentPage >= totalPages - 2) {
-        pages.push(
-          1,
-          "...",
-          totalPages - 3,
-          totalPages - 2,
-          totalPages - 1,
-          totalPages
-        );
-      } else {
+      if (currentPage <= 3) pages.push(1, 2, 3, "...", totalPages);
+      else if (currentPage >= totalPages - 2)
+        pages.push(1, "...", totalPages - 2, totalPages - 1, totalPages);
+      else
         pages.push(
           1,
           "...",
@@ -79,251 +69,336 @@ const MatiereList: React.FC<MatiereListProps> = ({
           "...",
           totalPages
         );
-      }
     }
     return pages;
   };
 
   return (
-    <div className="flex flex-col min-h-full">
-      {/* HEADER - dégradé identique à ProfesseurList */}
-      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-t-xl p-6 shadow-lg">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3">
-              <BookOpen className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-white">
-                Liste des Matières
-              </h2>
-              <p className="text-blue-100 text-sm">
-                {filteredMatieres.length} matière
-                {filteredMatieres.length > 1 ? "s" : ""}{" "}
-                {searchTerm &&
-                  `(filtré${
-                    filteredMatieres.length > 1 ? "s" : ""
-                  } sur ${matiereCount})`}
-              </p>
+    <div className="flex flex-col  p-4">
+      {/* HEADER */}
+      <div className="bg-white h-screen rounded-xl mb-6 overflow-hidden flex-shrink-0">
+        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 relative">
+                <BookOpen className="w-10 h-10 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-white mb-1">
+                  Liste des Matières
+                </h1>
+                <p className="text-blue-100">
+                  {filtered.length} matière{filtered.length > 1 ? "s" : ""}{" "}
+                  {searchTerm && `sur ${matiereCount} au total`}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* SEARCH - même style */}
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Rechercher par nom, professeur, parcours, niveau..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="w-full pl-12 pr-4 py-3 rounded-lg bg-white/90 backdrop-blur-sm border-2 border-white/20 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
-          />
+          {/* SEARCH */}
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Rechercher par nom, professeur, parcours, niveau, mention..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-12 pr-4 py-4 rounded-xl bg-white border-2 border-transparent 
+                focus:border-white focus:outline-none focus:ring-4 focus:ring-white/30 transition-all
+                text-gray-700 placeholder-gray-400"
+            />
+          </div>
+        </div>
+        <div className="flex-1 ">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full">
+              <thead className="sticky top-0 bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-indigo-200 z-10">
+                <tr>
+                  <th className="px-6 py-5 text-left text-xs font-bold text-black uppercase tracking-wider">
+                    <div className="flex items-left gap-2">
+                      <BookOpen className="w-4 h-4 " />
+                      Matière
+                    </div>
+                  </th>
+                  <th className="px-6 py-5 text-left text-xs font-bold text-black uppercase tracking-wider">
+                    <div className="flex items-left gap-2">
+                      <User className="w-4 h-4 " />
+                      Professeur
+                    </div>
+                  </th>
+                  <th className="px-6 py-5 text-left text-xs font-bold text-black uppercase tracking-wider">
+                    <div className="flex items-left gap-2">
+                      <GraduationCap className="w-4 h-4 " />
+                      Parcours
+                    </div>
+                  </th>
+                  <th className="px-6 py-5 text-left text-xs font-bold text-black uppercase tracking-wider">
+                    <div className="flex items-left gap-2">
+                      <Award className="w-4 h-4 " />
+                      Niveau
+                    </div>
+                  </th>
+                  <th className="px-6 py-5 text-left text-xs font-bold text-black uppercase tracking-wider">
+                    <div className="flex items-left gap-2">
+                      <Sparkles className="w-4 h-4 " />
+                      Mention
+                    </div>
+                  </th>
+                  <th className="px-6 py-5 text-center text-xs font-bold text-black uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-gray-100">
+                {currentData.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="p-16">
+                      <div className="text-center">
+                        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full mb-4">
+                          <BookOpen className="w-10 h-10 text-indigo-600" />
+                        </div>
+                        <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                          {searchTerm
+                            ? "Aucun résultat trouvé"
+                            : "Aucune matière trouvée"}
+                        </h3>
+                        <p className="text-gray-500">
+                          {searchTerm
+                            ? "Essayez avec d'autres mots-clés"
+                            : "Commencez par ajouter une matière"}
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  currentData.map((m, i) => (
+                    <tr
+                      key={m.matiere_id}
+                      className={`group transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50 hover:via-indigo-50 hover:to-purple-50 ${
+                        i % 2 === 0 ? "bg-white" : "bg-slate-50/50"
+                      }`}
+                      style={{
+                        animation: `fadeIn 0.3s ease-out ${i * 0.05}s both`,
+                      }}
+                    >
+                      {/* Matière */}
+                      <td className="px-6 py-5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md">
+                            <BookOpen className="w-5 h-5 text-white" />
+                          </div>
+                          <span className="font-semibold text-gray-900 text-base">
+                            {m.matiere_nom}
+                          </span>
+                        </div>
+                      </td>
+                      {/* Professeur */}
+                      <td className="px-6 py-5">
+                        {m.professeur ? (
+                          <div className="inline-flex items-center gap-2 px-3 py-1.5 ">
+                            <User className="w-3.5 h-3.5 text-white" />
+                            <span className="text-sm font-medium text-black">
+                              {m.professeur.professeur_prenom}{" "}
+                              {m.professeur.professeur_nom}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-sm italic">
+                            Non défini
+                          </span>
+                        )}
+                      </td>
+                      {/* Parcours */}
+                      <td className="px-6 py-5">
+                        {m.parcour ? (
+                          <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                            <GraduationCap className="w-3.5 h-3.5" />
+                            <span className="p-1">
+                              {m.parcour.parcours_nom}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-sm italic">
+                            Non défini
+                          </span>
+                        )}
+                      </td>
+                      {/* Niveau */}
+                      <td className="px-6 py-5">
+                        {m.niveau ? (
+                          <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
+                            <Award className="w-3.5 h-3.5" />
+                            <span className="p-1">{m.niveau.niveau_nom}</span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-sm italic">
+                            Non défini
+                          </span>
+                        )}
+                      </td>
+                      {/* Mention */}
+                      <td className="px-6 py-5">
+                        {m.mention ? (
+                          <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span className="p-1">{m.mention.mention_nom}</span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-sm italic">
+                            Non défini
+                          </span>
+                        )}
+                      </td>
+                      {/* Actions */}
+                      <td className="px-6 py-5">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => onEdit(m)}
+                            className="p-2.5 text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white rounded-lg 
+                            transition-all duration-200 shadow-sm hover:shadow-md hover:scale-110"
+                            title="Modifier"
+                          >
+                            <Edit2 className="w-4.5 h-4.5" />
+                          </button>
+                          <button
+                            onClick={() => onDelete(m.matiere_id)}
+                            className="p-2.5 text-red-600 bg-red-50 hover:bg-red-600 hover:text-white rounded-lg 
+                            transition-all duration-200 shadow-sm hover:shadow-md hover:scale-110"
+                            title="Supprimer"
+                          >
+                            <Trash2 className="w-4.5 h-4.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
       {/* TABLE */}
-      <div className="flex-1 bg-white overflow-hidden">
-        <div className="overflow-x-auto flex-1">
-          <table className="w-full">
-            <thead className="sticky top-0 bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-indigo-200 z-10">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  Nom
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  Professeur
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  Parcours
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  Niveau
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  Mention
-                </th>
-                <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-gray-100">
-              {currentMatieres.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="p-12">
-                    <div className="text-center">
-                      <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-                        <BookOpen className="w-8 h-8 text-gray-400" />
-                      </div>
-                      <p className="text-gray-500 text-lg font-medium">
-                        {searchTerm
-                          ? "Aucun résultat trouvé"
-                          : "Aucune matière trouvée"}
-                      </p>
-                      <p className="text-gray-400 text-sm mt-1">
-                        {searchTerm
-                          ? "Essayez avec d'autres mots-clés"
-                          : "Commencez par ajouter une matière"}
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                currentMatieres.map((m, i) => (
-                  <tr
-                    key={m.matiere_id}
-                    className={`transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 ${
-                      i % 2 === 0 ? "bg-white" : "bg-gray-50/50"
-                    }`}
-                  >
-                    <td className="px-6 py-4">{m.matiere_nom}</td>
-                    <td className="px-6 py-4">
-                      {m.professeur?.professeur_nom}{" "}
-                      {m.professeur?.professeur_prenom}
-                    </td>
-                    <td className="px-6 py-4">{m.parcour?.parcours_nom}</td>
-                    <td className="px-6 py-4">{m.niveau?.niveau_nom}</td>
-                    <td className="px-6 py-4">{m.mention?.mention_nom}</td>
-
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center space-x-2">
-                        <button
-                          onClick={() => onEdit(m)}
-                          className="group relative p-2 text-blue-600 hover:text-white hover:bg-blue-600 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
-                          title="Modifier"
-                        >
-                          <Edit2 className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => onDelete(m.matiere_id)}
-                          className="group relative p-2 text-red-600 hover:text-white hover:bg-red-600 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
-                          title="Supprimer"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
 
       {/* PAGINATION */}
-      {filteredMatieres.length > 0 && (
+      {filtered.length > 0 && (
         <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-t border-gray-200 rounded-b-xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <p className="text-sm text-gray-600">
-                Affichage de{" "}
-                <span className="font-semibold text-indigo-600">
-                  {startIndex + 1}
-                </span>{" "}
-                à{" "}
-                <span className="font-semibold text-indigo-600">
-                  {Math.min(endIndex, filteredMatieres.length)}
-                </span>{" "}
-                sur{" "}
-                <span className="font-semibold text-indigo-600">
-                  {filteredMatieres.length}
-                </span>{" "}
-                matière{filteredMatieres.length > 1 ? "s" : ""}
-              </p>
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <p className="text-sm text-gray-600">
+              Affichage de{" "}
+              <span className="font-semibold text-indigo-600">{start + 1}</span>{" "}
+              à{" "}
+              <span className="font-semibold text-indigo-600">
+                {Math.min(start + itemsPerPage, filtered.length)}
+              </span>{" "}
+              sur{" "}
+              <span className="font-semibold text-indigo-600">
+                {filtered.length}
+              </span>{" "}
+              matières
+            </p>
 
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">Par page:</span>
-                <select
-                  value={itemsPerPage}
-                  onChange={(e) =>
-                    handleItemsPerPageChange(Number(e.target.value))
-                  }
-                  className="px-3 py-1 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+            <div className="flex items-center gap-3">
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="px-4 py-2 border-2 border-gray-200 bg-white rounded-lg
+                  focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+
+              <div className="flex gap-2">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(1)}
+                  className="px-3 py-2 bg-white border-2 border-gray-200 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 text-gray-600 
+                    rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                 >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={20}>20</option>
-                  <option value={50}>50</option>
-                  <option value={100}>100</option>
-                </select>
-              </div>
-            </div>
+                  <ChevronsLeft className="w-5 h-5" />
+                </button>
 
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setCurrentPage(1)}
-                disabled={currentPage === 1}
-                className="p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                title="Première page"
-              >
-                <ChevronsLeft className="w-4 h-4 text-gray-600" />
-              </button>
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  className="px-3 py-2 bg-white border-2 border-gray-200 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 text-gray-600 
+                    rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
 
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                title="Page précédente"
-              >
-                <ChevronLeft className="w-4 h-4 text-gray-600" />
-              </button>
-
-              <div className="flex items-center space-x-1">
-                {getPageNumbers().map((pageNum, idx) =>
-                  pageNum === "..." ? (
+                {getPageNumbers().map((num, idx) =>
+                  num === "…" || num === "..." ? (
                     <span
-                      key={`ellipsis-${idx}`}
-                      className="px-3 py-1 text-gray-500"
+                      key={idx}
+                      className="px-3 flex items-center text-gray-400"
                     >
                       ...
                     </span>
                   ) : (
                     <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum as number)}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                        currentPage === pageNum
-                          ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
-                          : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                      key={idx}
+                      onClick={() => setCurrentPage(num)}
+                      className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
+                        currentPage === num
+                          ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-transparent"
+                          : "bg-white border-gray-200 text-gray-700 hover:border-indigo-300 hover:bg-indigo-50"
                       }`}
                     >
-                      {pageNum}
+                      {num}
                     </button>
                   )
                 )}
+
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((p) => p + 1)}
+                  className="px-3 py-2 bg-white border-2 border-gray-200 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 text-gray-600 
+                    rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(totalPages)}
+                  className="px-3 py-2 bg-white border-2 border-gray-200 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 text-gray-600 
+                    rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronsRight className="w-5 h-5" />
+                </button>
               </div>
-
-              <button
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
-                disabled={currentPage === totalPages}
-                className="p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                title="Page suivante"
-              >
-                <ChevronRight className="w-4 h-4 text-gray-600" />
-              </button>
-
-              <button
-                onClick={() => setCurrentPage(totalPages)}
-                disabled={currentPage === totalPages}
-                className="p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                title="Dernière page"
-              >
-                <ChevronsRight className="w-4 h-4 text-gray-600" />
-              </button>
             </div>
           </div>
         </div>
       )}
+
+      <style>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateX(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+      `}</style>
     </div>
   );
 };
 
+// Demo avec données d'exemple
 export default MatiereList;
