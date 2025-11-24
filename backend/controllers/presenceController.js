@@ -1,4 +1,13 @@
-const { Presence, Etudiant, LogAppareil } = require("../models");
+const {
+  Presence,
+  Etudiant,
+  LogAppareil,
+  Seance,
+  Matiere,
+  Mentions,
+  Parcours,
+  Niveau,
+} = require("../models");
 const io = require("../server"); // Assurez-vous que server.js exporte io
 const excelJS = require("exceljs"); // npm install exceljs
 

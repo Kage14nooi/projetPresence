@@ -350,7 +350,7 @@ async function updateSeanceStatus(seance) {
       is_active: seance.is_active,
     });
 
-    console.log(`Séance ${seance.seance_id} → is_active=${seance.is_active}`);
+    // console.log(`Séance ${seance.seance_id} → is_active=${seance.is_active}`);
   }
 }
 

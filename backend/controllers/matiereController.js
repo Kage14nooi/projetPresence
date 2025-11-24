@@ -49,8 +49,16 @@ exports.getMatieres = async (req, res) => {
   try {
     const matieres = await Matiere.findAll({
       include: [
-        { model: Seance, as: "seances" }, // séances associées
-        { model: Professeur }, // professeur associé
+        {
+          model: Seance,
+          //  as: "seances"
+          //
+        }, // séances associées
+        {
+          model: Professeur,
+          //  as: "professeur"
+          //
+        }, // professeur associé
         { model: Parcours }, // parcours associé
         { model: Niveau }, // niveau associé
         { model: Mentions }, // mention associée
@@ -66,7 +74,7 @@ exports.getMatieres = async (req, res) => {
 exports.getMatiereById = async (req, res) => {
   try {
     const matiere = await Matiere.findByPk(req.params.id, {
-      include: [Professeur, Parcours],
+      include: [{ Professeur, as: "professeur" }, { Parcours }],
     });
     if (!matiere) return res.status(404).json({ error: "Matière non trouvée" });
     res.json(matiere);
