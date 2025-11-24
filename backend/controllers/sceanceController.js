@@ -472,7 +472,7 @@ exports.getPresenceBySeance = async (req, res) => {
       include: [
         {
           model: Etudiant,
-          as: "etudiant",
+          // as: "etudiant",
           attributes: [
             "etudiant_id",
             "etudiant_matricule",
@@ -487,12 +487,12 @@ exports.getPresenceBySeance = async (req, res) => {
         },
         {
           model: Seance,
-          as: "seance",
+          // as: "seance",
           attributes: ["seance_id", "date_seance", "heure_debut", "heure_fin"],
           include: [
             {
               model: Matiere,
-              as: "matiere",
+              // as: "matiere",
               attributes: ["matiere_id", "matiere_nom"],
               include: [
                 {
@@ -534,7 +534,7 @@ exports.getSeanceAbsents = async (req, res) => {
       include: [
         {
           model: Etudiant,
-          as: "etudiant", // ⚠️ doit correspondre à l'alias
+          // as: "etudiant", // ⚠️ doit correspondre à l'alias
           attributes: [
             "etudiant_id",
             "etudiant_nom",
@@ -566,7 +566,13 @@ exports.checkAndCloseExpiredSeances = async (req, res) => {
     // Récupérer toutes les séances actives
     const seancesActives = await Seance.findAll({
       where: { is_active: true },
-      include: [{ model: Matiere, as: "matiere" }],
+      include: [
+        {
+          model: Matiere,
+          // as: "matiere"
+          //
+        },
+      ],
     });
 
     let seancesDesactivees = 0;

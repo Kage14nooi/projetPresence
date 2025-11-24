@@ -66,7 +66,8 @@ const SeanceList: React.FC<SeanceListProps> = ({
               new Date(`${s.date_seance} ${s.heure_fin}`) < new Date());
           return {
             ...s,
-            is_active: locked ? false : updatedSeance.is_active,
+            is_active: locked ? s.is_active : updatedSeance.is_active,
+            locked,
           };
         })
       );
@@ -381,7 +382,9 @@ const SeanceList: React.FC<SeanceListProps> = ({
                       >
                         <span
                           className={`inline-block h-5 w-5 transform bg-white rounded-full transition-transform shadow-md ${
-                            s.is_active ? "translate-x-6" : "translate-x-1"
+                            s.locked || !s.is_active
+                              ? "translate-x-1"
+                              : "translate-x-6"
                           }`}
                         />
                       </button>

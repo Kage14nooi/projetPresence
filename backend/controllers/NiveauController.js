@@ -1,4 +1,12 @@
-const { Niveau } = require("../models");
+const {
+  Niveau,
+  Seance,
+  Absence,
+  Presence,
+  Matiere,
+  Etudiant,
+  LogAppareil,
+} = require("../models");
 
 // ➕ Créer un Niveau
 exports.createNiveau = async (req, res) => {
@@ -60,15 +68,100 @@ exports.updateNiveau = async (req, res) => {
 };
 
 // 🗑️ Supprimer un niveau
+// exports.deleteNiveau = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const niveau = await Niveau.findByPk(id);
+//     if (!niveau) return res.status(404).json({ error: "Niveau non trouvé" });
+
+//     await niveau.destroy();
+//     res.json({ message: "Niveau supprimé avec succès" });
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+
+// NiveauController.js
 exports.deleteNiveau = async (req, res) => {
   try {
     const { id } = req.params;
-    const niveau = await Niveau.findByPk(id);
+
+    const niveau = await Niveau.findByPk(id, {
+      include: [
+        {
+          model: Matiere,
+          // as: "matieres",
+          include: [
+            {
+              model: Seance,
+              // as: "seances",
+              include: [
+                {
+                  model: Presence,
+                  //  as: "presences"
+                },
+                {
+                  model: Absence,
+                  //  as: "absences"
+                },
+              ],
+            },
+          ],
+        },
+        {
+          model: Etudiant,
+          // as: "etudiants",
+          include: [
+            {
+              model: Absence,
+              // as: "absences"
+            },
+            {
+              model: Presence,
+              // as: "presences"
+              //
+            },
+            {
+              model: LogAppareil,
+              //  as: "log_appareils"
+              //
+            },
+          ],
+        },
+      ],
+    });
+
     if (!niveau) return res.status(404).json({ error: "Niveau non trouvé" });
 
+    // Supprimer toutes les absences, présences et logs des étudiants
+    for (const etudiant of niveau.etudiants) {
+      await Absence.destroy({ where: { etudiant_id: etudiant.etudiant_id } });
+      await Presence.destroy({ where: { etudiant_id: etudiant.etudiant_id } });
+      await LogAppareil.destroy({
+        where: { etudiant_id: etudiant.etudiant_id },
+      });
+      await etudiant.destroy();
+    }
+
+    // Supprimer les seances et leurs presences/absences
+    for (const matiere of niveau.matieres) {
+      for (const seance of matiere.seances) {
+        await Presence.destroy({ where: { seance_id: seance.seance_id } });
+        await Absence.destroy({ where: { seance_id: seance.seance_id } });
+        await seance.destroy();
+      }
+      await matiere.destroy();
+    }
+
+    // Enfin supprimer le niveau
     await niveau.destroy();
+
     res.json({ message: "Niveau supprimé avec succès" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Erreur deleteNiveau:", err);
+    res.status(500).json({
+      error: "Erreur serveur lors de la suppression du niveau",
+      details: err.message,
+    });
   }
 };
