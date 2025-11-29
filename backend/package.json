@@ -10,6 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@serialport/bindings-cpp": "^13.0.1",
+    "@serialport/parser-readline": "^13.0.0",
+    "@serialport/stream": "^13.0.0",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
     "body-parser": "^2.2.0",
@@ -28,5 +31,8 @@
     "sequelize": "^6.37.7",
     "socket.io": "^4.8.1",
     "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1"
   }
 }

@@ -4,6 +4,7 @@ const {
   Etudiant,
   Matiere,
   Mentions,
+  Absence,
   Parcours,
   Niveau,
   Professeur,
@@ -106,16 +107,34 @@ exports.updateSeance = async (req, res) => {
 };
 
 // ---------------- DELETE ----------------
+// exports.deleteSeance = async (req, res) => {
+//   try {
+//     const seance = await Seance.findByPk(req.params.id);
+//     if (!seance) return res.status(404).json({ error: "Séance non trouvée" });
+
+//     await seance.destroy(); // ← Les Presence, Absence et LogAppareil seront supprimés automatiquement
+//     res.json({ message: "Séance supprimée avec succès" });
+//   } catch (err) {
+//     console.error("❌ ERREUR LORS DE LA SUPPRESSION DE SEANCE :", err);
+//     res.status(500).json({ error: err.message });
+//   }
+// };
 exports.deleteSeance = async (req, res) => {
   try {
-    const seance = await Seance.findByPk(req.params.id);
-    if (!seance) return res.status(404).json({ error: "Séance non trouvée" });
+    const id = req.params.id;
 
-    await seance.destroy(); // ← Les Presence, Absence et LogAppareil seront supprimés automatiquement
+    // Supprimer d’abord les présences liées
+    await Presence.destroy({ where: { seance_id: id } });
+
+    // Ensuite supprimer la séance
+    await Seance.destroy({ where: { seance_id: id } });
+
     res.json({ message: "Séance supprimée avec succès" });
-  } catch (err) {
-    console.error("❌ ERREUR LORS DE LA SUPPRESSION DE SEANCE :", err);
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error("❌ ERREUR LORS DE LA SUPPRESSION DE SEANCE :", error);
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la suppression de la séance" });
   }
 };
 
@@ -135,7 +154,7 @@ exports.toggleSeanceActive = async (req, res) => {
     const isSeanceTerminee = now >= seanceDateFin;
 
     // 🚫 Séance terminée et inactive → impossible d'activer
-    console.log("aty amin back ", seances.is_active);
+    // console.log("aty amin back ", seances.is_active);
 
     if (isSeanceTerminee && !seance.is_active) {
       console.log("anaty condition");
