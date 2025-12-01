@@ -10,7 +10,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Import des routes
 const adminRoutes = require("./routes/adminRoutes");
-const roleRoutes = require("./routes/roleRoutes");
+const appareilRoutes = require("./routes/appareilRoutes");
 const etudiantRoutes = require("./routes/etudiantRoutes");
 const professeurRoutes = require("./routes/professeurRoutes");
 const parcoursRoutes = require("./routes/parcoursRoutes");
@@ -22,6 +22,7 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const logRoutes = require("./routes/logRoutes");
 const MentionRoute = require("./routes/MentionRoutes");
 const NiveauRoute = require("./routes/NiveauRoutes");
+const roleRoutes = require("./routes/roleRoutes");
 const sceancesRoutes = require("./routes/sceanceRoutes");
 const dashboardRoute = require("./routes/dashboardRoute");
 
@@ -41,6 +42,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/logs", logRoutes);
 app.use("/api/mentions", MentionRoute);
 app.use("/api/niveaus", NiveauRoute);
+app.use("/api/appareils", appareilRoutes);
 app.use("/api/sceances", sceancesRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/dashboard", dashboardRoute);

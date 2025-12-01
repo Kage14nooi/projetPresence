@@ -19,6 +19,7 @@ import SeancePage from "./pages/SeancePage";
 import AbsenceNotification from "./pages/NotificationPage";
 import AbsencePage from "./pages/AbsencePage";
 import PiecePage from "./pages/PiecePage";
+import AppareilPage from "./pages/AppareilPage";
 
 function App() {
   const isAuthenticated = !!localStorage.getItem("token"); // Vérifie si token existe
@@ -139,6 +140,18 @@ function App() {
               isAuthenticated ? (
                 <Layout>
                   <PiecePage />
+                </Layout>
+              ) : (
+                <Navigate to="/login" />
+              )
+            }
+          />
+          <Route
+            path="/appareils"
+            element={
+              isAuthenticated ? (
+                <Layout>
+                  <AppareilPage />
                 </Layout>
               ) : (
                 <Navigate to="/login" />

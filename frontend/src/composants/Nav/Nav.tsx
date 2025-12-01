@@ -13,6 +13,7 @@ import {
   X,
   ChevronRight,
   Menu,
+  Cpu,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -79,6 +80,7 @@ const NavBar: React.FC<NavBarProps> = ({
       label: "Paramètres",
       icon: Settings,
       children: [
+        { id: "appareil", label: "Appareils", icon: Cpu, path: "/appareils" },
         { id: "matiere", label: "Matières", icon: BookOpen, path: "/matieres" },
         {
           id: "niveau",

@@ -8,20 +8,28 @@ const {
   Parcours,
   Niveau,
   Professeur,
+  Appareil,
 } = require("../models");
 
 // ---------------- CREATE ----------------
 exports.createSeance = async (req, res) => {
   try {
-    const { matiere_id, date_seance, heure_debut, heure_fin } = req.body;
+    const { appareil_id, matiere_id, date_seance, heure_debut, heure_fin } =
+      req.body;
 
-    if (!matiere_id || !date_seance || !heure_debut || !heure_fin) {
+    if (
+      !appareil_id ||
+      !matiere_id ||
+      !date_seance ||
+      !heure_debut ||
+      !heure_fin
+    ) {
       return res.status(400).json({ message: "Tous les champs sont requis." });
     }
 
     // Vérifier si la séance existe déjà
     const existingSeance = await Seance.findOne({
-      where: { matiere_id, date_seance, heure_debut },
+      where: { appareil_id, matiere_id, date_seance, heure_debut },
     });
 
     if (existingSeance) {
@@ -29,6 +37,7 @@ exports.createSeance = async (req, res) => {
     }
 
     const newSeance = await Seance.create({
+      appareil_id,
       matiere_id,
       date_seance,
       heure_debut,
@@ -50,9 +59,10 @@ exports.getAllSeances = async (req, res) => {
   try {
     const seances = await Seance.findAll({
       include: [
+        { model: Appareil, attributes: ["appareil_nom", "appareil_serie"] },
         {
           model: Matiere,
-          as: "matiere", // ⚠️ doit être identique à l'alias dans ton association
+          // as: "matiere", // ⚠️ doit être identique à l'alias dans ton association
           attributes: ["matiere_nom"],
           include: [
             {
@@ -83,7 +93,16 @@ exports.getAllSeances = async (req, res) => {
 // ---------------- READ BY ID ----------------
 exports.getSeanceById = async (req, res) => {
   try {
-    const seance = await Seance.findByPk(req.params.id);
+    const seance = await Seance.findByPk(req.params.id, {
+      include: [
+        { model: Appareil, attributes: ["appareil_nom", "appareil_serie"] },
+        {
+          model: Matiere,
+          // as: "matiere",
+          attributes: ["matiere_nom"],
+        },
+      ],
+    });
     if (!seance) return res.status(404).json({ error: "Séance non trouvée" });
     res.json(seance);
   } catch (err) {
@@ -142,7 +161,12 @@ exports.toggleSeanceActive = async (req, res) => {
   try {
     const seanceId = req.params.id;
     const seance = await Seance.findByPk(seanceId, {
-      include: [{ model: Matiere, as: "matiere" }],
+      include: [
+        {
+          model: Matiere,
+          //  as: "matiere"
+        },
+      ],
     });
     if (!seance) return res.status(404).json({ error: "Séance non trouvée" });
 

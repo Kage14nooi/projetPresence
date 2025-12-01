@@ -12,6 +12,7 @@ import {
   ChevronsRight,
   Search,
   CheckCircle,
+  Cpu,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
@@ -120,6 +121,7 @@ const SeanceList: React.FC<SeanceListProps> = ({
     if (!searchTerm) return true;
     const lower = searchTerm.toLowerCase();
     return (
+      s.appareil?.appareil_nom?.toLowerCase().includes(lower) ||
       s.matiere?.matiere_nom?.toLowerCase().includes(lower) ||
       s.date_seance?.toLowerCase().includes(lower) ||
       s.heure_debut?.toLowerCase().includes(lower) ||
@@ -275,6 +277,9 @@ const SeanceList: React.FC<SeanceListProps> = ({
             <thead className="sticky top-0 bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-indigo-200 z-10">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  Appareil
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                   Matière
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
@@ -327,6 +332,16 @@ const SeanceList: React.FC<SeanceListProps> = ({
                           }`
                     }`}
                   >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-md">
+                          <Cpu className="w-5 h-5" />
+                        </div>
+                        <span className="font-semibold text-gray-900">
+                          {s.appareil?.appareil_nom || "N/A"}
+                        </span>
+                      </div>
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-md">

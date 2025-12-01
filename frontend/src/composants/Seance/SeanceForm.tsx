@@ -1,4 +1,5 @@
 import React from "react";
+import { type Appareil } from "../../services/appareilService";
 
 interface SeanceFormProps {
   formData: any;
@@ -7,125 +8,30 @@ interface SeanceFormProps {
   setErrors: (data: any) => void;
   onSubmit: (data: any) => Promise<void>;
   matieres: { matiere_id: number; matiere_nom: string }[];
+  appareils: Appareil[];
 }
 
 const SeanceForm: React.FC<SeanceFormProps> = ({
   formData,
   setFormData,
   errors,
-  setErrors,
   onSubmit,
+  setErrors,
   matieres,
+  appareils,
 }) => {
   const handleLocalSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     const newErrors: any = {};
 
-    // Validation matière
-    if (!formData.matiere_id) {
-      newErrors.matiere_id = "La matière est requise";
-    }
-
-    // Validation date
-    if (!formData.date_seance) {
-      newErrors.date_seance = "La date est requise";
-    } else {
-      const selectedDate = new Date(formData.date_seance);
-      selectedDate.setHours(0, 0, 0, 0);
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      if (!formData.seance_id) {
-        if (selectedDate.getTime() < today.getTime()) {
-          newErrors.date_seance =
-            "La date doit être aujourd'hui ou dans le futur";
-        }
-      } else {
-        if (formData.date_debut_initiale) {
-          const dateInitiale = new Date(formData.date_debut_initiale);
-          dateInitiale.setHours(0, 0, 0, 0);
-
-          if (dateInitiale.getTime() < today.getTime()) {
-            if (selectedDate.getTime() < dateInitiale.getTime()) {
-              newErrors.date_seance =
-                "La date ne peut pas être avant la date de début de la séance";
-            }
-          } else {
-            if (selectedDate.getTime() < today.getTime()) {
-              newErrors.date_seance =
-                "La date doit être aujourd'hui ou dans le futur";
-            }
-          }
-        }
-      }
-    }
-
-    // Validation heures obligatoires
-    if (!formData.heure_debut) {
+    if (!formData.matiere_id) newErrors.matiere_id = "La matière est requise";
+    if (!formData.appareil_id) newErrors.appareil_id = "L'appareil est requis";
+    if (!formData.date_seance) newErrors.date_seance = "La date est requise";
+    if (!formData.heure_debut)
       newErrors.heure_debut = "L'heure de début est requise";
-    }
-
-    if (!formData.heure_fin) {
-      newErrors.heure_fin = "L'heure de fin est requise";
-    }
-
-    // Validation logique heures seulement si les deux champs sont remplis
-    if (formData.heure_debut && formData.heure_fin) {
-      if (formData.heure_debut >= formData.heure_fin) {
-        newErrors.heure_fin = "L'heure de fin doit être après l'heure de début";
-      }
-
-      if (formData.date_seance) {
-        const selectedDate = new Date(formData.date_seance);
-        selectedDate.setHours(0, 0, 0, 0);
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        if (selectedDate.getTime() === today.getTime()) {
-          const now = new Date();
-          const currentTime = `${now
-            .getHours()
-            .toString()
-            .padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
-
-          if (!formData.seance_id) {
-            if (formData.heure_debut < currentTime) {
-              newErrors.heure_debut =
-                "L'heure de début doit être dans le futur";
-            }
-          } else {
-            if (formData.heure_debut_initiale) {
-              const heureInitialePassee =
-                formData.heure_debut_initiale < currentTime;
-
-              if (heureInitialePassee) {
-                if (
-                  formData.heure_debut &&
-                  formData.heure_debut < formData.heure_debut_initiale
-                ) {
-                  newErrors.heure_debut =
-                    "L'heure ne peut pas être avant l'heure de début initiale";
-                }
-              } else {
-                if (
-                  formData.heure_debut &&
-                  formData.heure_debut < currentTime
-                ) {
-                  newErrors.heure_debut =
-                    "L'heure de début doit être dans le futur";
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+    if (!formData.heure_fin) newErrors.heure_fin = "L'heure de fin est requise";
 
     setErrors(newErrors);
-
     if (Object.keys(newErrors).length === 0) {
       await onSubmit(formData);
     }
@@ -156,6 +62,36 @@ const SeanceForm: React.FC<SeanceFormProps> = ({
         </select>
         {errors?.matiere_id && (
           <p className="text-red-500 text-sm mt-1">{errors.matiere_id}</p>
+        )}
+      </div>
+
+      {/* Appareil */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Appareil
+        </label>
+        <select
+          value={formData.appareil_id || ""}
+          onChange={(e) =>
+            setFormData({ ...formData, appareil_id: Number(e.target.value) })
+          }
+          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
+            errors?.appareil_id ? "border-red-500" : "border-gray-300"
+          }`}
+        >
+          <option value="">-- Sélectionner un appareil --</option>
+          {Array.isArray(appareils) && appareils.length > 0 ? (
+            appareils.map((appareil) => (
+              <option key={appareil.appareil_id} value={appareil.appareil_id}>
+                {appareil.appareil_nom}
+              </option>
+            ))
+          ) : (
+            <option value="">Aucun appareil disponible</option>
+          )}
+        </select>
+        {errors?.appareil_id && (
+          <p className="text-red-500 text-sm mt-1">{errors.appareil_id}</p>
         )}
       </div>
 
