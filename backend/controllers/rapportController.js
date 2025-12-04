@@ -232,7 +232,7 @@ const {
   Mentions,
   Niveau,
 } = require("../models");
-const { count } = require("console");
+const { count, log } = require("console");
 
 // ========================================
 // STATISTIQUES AVANCÉES
@@ -794,15 +794,7 @@ exports.rapportCompletEtudiant = async (req, res) => {
         : "100.00";
 
     res.json({
-      etudiant: {
-        nom: etudiant.nom,
-        prenom: etudiant.prenom,
-        matricule: etudiant.matricule,
-        email: etudiant.email,
-        parcours: etudiant.parcour?.parcours_nom,
-        mention: etudiant.mention?.mention_nom,
-        niveau: etudiant.niveau?.niveau_nom,
-      },
+      etudiant: etudiant.toJSON(),
       resume: {
         total_absences_completes: absencesCompletes.length,
         total_retards: retards.length,

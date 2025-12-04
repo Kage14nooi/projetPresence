@@ -185,6 +185,18 @@ function App() {
             }
           />
           <Route
+            path="/rapports"
+            element={
+              isAuthenticated ? (
+                <Layout>
+                  <Rapport />
+                </Layout>
+              ) : (
+                <Navigate to="/login" />
+              )
+            }
+          />
+          <Route
             path="/notifications"
             element={
               isAuthenticated ? (

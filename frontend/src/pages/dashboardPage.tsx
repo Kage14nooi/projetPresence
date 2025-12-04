@@ -17,6 +17,7 @@ import {
   Clock,
   TrendingUp,
   Download,
+  Eye,
 } from "lucide-react";
 import {
   getDashboardDataAvance,
@@ -132,7 +133,7 @@ const Dashboard = () => {
               </h1>
               <p className="text-gray-600">Suivi et analyse des absences</p>
             </div>
-            <div className="flex gap-3">
+            {/* <div className="flex gap-3">
               <select
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
@@ -150,7 +151,7 @@ const Dashboard = () => {
                 <Download size={18} />
                 Exporter
               </button>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -441,9 +442,10 @@ const Dashboard = () => {
                                 (window.location.href = `/rapport/etudiant/`)
                               // (window.location.href = `/rapport/etudiant/${item.etudiant?.id}`)
                             }
-                            className="text-indigo-600 hover:text-indigo-800 font-medium text-sm"
+                            className="group relative p-2 text-green-600 hover:text-white hover:bg-green-600 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+                            title="Voir le détail"
                           >
-                            Voir détails →
+                            <Eye className="w-5 h-5" />
                           </button>
                         </td>
                       </tr>
