@@ -362,7 +362,7 @@ exports.pourcentageAbsencesParMatiere = async (req, res) => {
     });
 
     const totalGlobalAbsences = absences.length;
-    console.log("Total global des absences :", totalGlobalAbsences);
+    // console.log("Total global des absences :", totalGlobalAbsences);
 
     const result = {};
 
@@ -597,7 +597,7 @@ exports.etudiantsAvecAlerte = async (req, res) => {
   try {
     const seuil = parseFloat(req.query.seuil) || 25; // 25% par défaut
 
-    console.log("Chargement des étudiants...");
+    // console.log("Chargement des étudiants...");
 
     const etudiants = await Etudiant.findAll({
       include: [
