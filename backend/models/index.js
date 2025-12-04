@@ -843,6 +843,7 @@ const { Sequelize, DataTypes } = require("sequelize");
 const sequelize = new Sequelize("gestion_presence", "root", "", {
   host: "localhost",
   dialect: "mysql",
+  logging: false,
 });
 
 // =========================

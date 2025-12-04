@@ -9,7 +9,7 @@ import axios from "axios";
 // 🔵 OUVERTURE DU PORT SÉRIE
 // -----------------------------
 const port = new SerialPort({
-  path: "COM3", // Exemple Windows → COM3 / COM4
+  path: "COM4", // Exemple Windows → COM3 / COM4
   baudRate: 9600, // Même vitesse que ton Arduino
 });
 

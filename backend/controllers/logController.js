@@ -130,6 +130,7 @@ exports.createLog = async (req, res) => {
       include: [
         {
           model: Matiere,
+          as: "matiere",
           required: true,
           attributes: ["matiere_id", "parcours_id", "niveau_id", "mention_id"],
         },
