@@ -12,6 +12,7 @@ import {
   ChevronsRight,
   Search,
   Filter,
+  Eye,
 } from "lucide-react";
 
 interface EtudiantListProps {
@@ -327,6 +328,17 @@ const EtudiantList: React.FC<EtudiantListProps> = ({
                           title="Supprimer"
                         >
                           <Trash2 className="w-5 h-5" />
+                        </button>
+                        <button
+                          //   onClick={() => onViewDetail(e)}
+                          onClick={
+                            () => (window.location.href = `/rapport/etudiant/`)
+                            // (window.location.href = `/rapport/etudiant/${item.etudiant?.id}`)
+                          }
+                          className="group relative p-2 text-green-600 hover:text-white hover:bg-green-600 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+                          title="Voir le détail"
+                        >
+                          <Eye className="w-5 h-5" />
                         </button>
                       </div>
                     </td>

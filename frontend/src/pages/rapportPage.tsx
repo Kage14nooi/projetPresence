@@ -1141,6 +1141,10 @@
 // export default RapportEtudiant;
 
 import React, { useState, useEffect } from "react";
+import jsPDF from "jspdf";
+import { useReactToPrint } from "react-to-print";
+import html2canvas from "html2canvas";
+import { useRef } from "react";
 import {
   BarChart,
   Bar,
@@ -1173,6 +1177,28 @@ import {
 
 interface RapportEtudiantProps {
   etudiantId?: string | number;
+}
+export interface Etudiant {
+  etudiant_id: number;
+  etudiant_prenom: string;
+  etudiant_nom: string;
+  etudiant_matricule: string;
+  etudiant_mail: string;
+  etudiant_tel?: string;
+  role_id?: number;
+  device_user_id?: string;
+  mention?: {
+    mention_id: number;
+    mention_nom: string;
+  };
+  niveau?: {
+    niveau_id: number;
+    niveau_nom: string;
+  };
+  parcour?: {
+    parcours_id: number;
+    parcours_nom: string;
+  };
 }
 
 interface RadarDataItem {
@@ -1211,8 +1237,31 @@ const Rapport: React.FC<RapportEtudiantProps> = ({ etudiantId }) => {
     }
   };
 
-  const handleExportPDF = () => {
-    window.print();
+  // const handleExportPDF = () => {
+  //   window.print();
+  // };
+  // const componentRef = useRef<HTMLDivElement>(null);
+  // const handleExportPDF = useReactToPrint({
+  //   content: () => componentRef.current,
+  //   documentTitle: `rapport_etudiant_${selectedId}`,
+  // });
+
+  const handleExportPDF = async () => {
+    console.log("mety");
+
+    const element = document.getElementById("rapport-container");
+    if (!element) return;
+
+    const canvas = await html2canvas(element, { scale: 2 });
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF("p", "mm", "a4");
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save(`rapport_etudiant_${selectedId}.pdf`);
   };
 
   const getScoreColor = (score: string): string => {
@@ -1277,7 +1326,7 @@ const Rapport: React.FC<RapportEtudiantProps> = ({ etudiantId }) => {
   ).toFixed(2);
 
   const alerte = getAlerteNiveau(tauxAbsenceGlobal);
-  console.log(data.etudiant);
+  console.log(data);
   // Données pour le radar chart
   const radarData: RadarDataItem[] =
     data.statistiques_par_matiere?.map((m: any) => ({
@@ -1287,7 +1336,10 @@ const Rapport: React.FC<RapportEtudiantProps> = ({ etudiantId }) => {
     })) || [];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 print:p-0">
+    <div
+      className="min-h-screen bg-gray-50 p-6 print:p-0"
+      id="rapport-container"
+    >
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-6 print:shadow-none">
@@ -1328,18 +1380,22 @@ const Rapport: React.FC<RapportEtudiantProps> = ({ etudiantId }) => {
                   Nom complet:
                 </span>
                 <span className="text-gray-900">
-                  {data.etudiant.prenom} {data.etudiant.nom}
+                  {data.etudiant.etudiant_prenom} {data.etudiant.etudiant_nom}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <FileText size={18} className="text-indigo-600" />
                 <span className="font-semibold text-gray-700">Matricule:</span>
-                <span className="text-gray-900">{data.etudiant.matricule}</span>
+                <span className="text-gray-900">
+                  {data.etudiant.etudiant_matricule}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail size={18} className="text-indigo-600" />
                 <span className="font-semibold text-gray-700">Email:</span>
-                <span className="text-gray-900">{data.etudiant.email}</span>
+                <span className="text-gray-900">
+                  {data.etudiant.etudiant_mail}
+                </span>
               </div>
             </div>
             <div className="space-y-2">
@@ -1347,21 +1403,21 @@ const Rapport: React.FC<RapportEtudiantProps> = ({ etudiantId }) => {
                 <Award size={18} className="text-indigo-600" />
                 <span className="font-semibold text-gray-700">Parcours:</span>
                 <span className="text-gray-900">
-                  {data.etudiant.parcours || "N/A"}
+                  {data.etudiant.parcour?.parcours_nom || "N/A"}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <Award size={18} className="text-indigo-600" />
                 <span className="font-semibold text-gray-700">Mention:</span>
                 <span className="text-gray-900">
-                  {data.etudiant.mention || "N/A"}
+                  {data.etudiant.mention?.mention_nom || "N/A"}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <Award size={18} className="text-indigo-600" />
                 <span className="font-semibold text-gray-700">Niveau:</span>
                 <span className="text-gray-900">
-                  {data.etudiant.niveau || "N/A"}
+                  {data.etudiant.niveau?.niveau_nom || "N/A"}
                 </span>
               </div>
             </div>

@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Menu,
   Cpu,
+  BarChart3,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -75,6 +76,7 @@ const NavBar: React.FC<NavBarProps> = ({
       badge: 12,
     },
     // { id: "reports", label: "Rapports", icon: BarChart3, path: "/rapports" },
+
     {
       id: "settings",
       label: "Paramètres",

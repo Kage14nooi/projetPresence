@@ -578,14 +578,26 @@ export async function getAbsencesAnnuelle(annee: number | string) {
 // ========================================
 
 export interface Etudiant {
-  id: number;
-  nom: string;
-  prenom: string;
-  email: string;
-  matricule: string;
-  parcours?: string;
-  mention?: string;
-  niveau?: string;
+  etudiant_id: number;
+  etudiant_prenom: string;
+  etudiant_nom: string;
+  etudiant_matricule: string;
+  etudiant_mail: string;
+  etudiant_tel?: string;
+  role_id?: number;
+  device_user_id?: string;
+  mention?: {
+    mention_id: number;
+    mention_nom: string;
+  };
+  niveau?: {
+    niveau_id: number;
+    niveau_nom: string;
+  };
+  parcour?: {
+    parcours_id: number;
+    parcours_nom: string;
+  };
 }
 
 export interface StatistiqueMatiere {
