@@ -493,6 +493,7 @@ export async function getDashboardDataAvance() {
       getHeuresPerduesParNiveauMention(),
       getEtudiantsAvecAlerte(),
     ]);
+    console.log(etudiantsAlerte);
 
     return {
       ...dashboardBase,

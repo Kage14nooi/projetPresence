@@ -1142,9 +1142,11 @@
 
 import React, { useState, useEffect } from "react";
 import jsPDF from "jspdf";
-import { useReactToPrint } from "react-to-print";
+import { useParams } from "react-router-dom";
+// import { useReactToPrint } from "react-to-print";
 import html2canvas from "html2canvas";
-import { useRef } from "react";
+// import { useRef } from "react";
+import PDFRapportEtudiant from "../composants/Pdf/PDFRapportEtudiant";
 import {
   BarChart,
   Bar,
@@ -1207,13 +1209,15 @@ interface RadarDataItem {
   absence: number;
 }
 
-const Rapport: React.FC<RapportEtudiantProps> = ({ etudiantId }) => {
+const Rapport: React.FC<RapportEtudiantProps> = ({}) => {
   const [data, setData] = useState<RapportComplet | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<string | number>(
-    etudiantId || "1"
-  );
+  // const [selectedId, setSelectedId] = useState<string | number>(
+  //   etudiantId || "1"
+  // );
+  const { id } = useParams();
+  const [selectedId, setSelectedId] = useState(id || "1");
 
   useEffect(() => {
     if (selectedId) {
@@ -1246,22 +1250,123 @@ const Rapport: React.FC<RapportEtudiantProps> = ({ etudiantId }) => {
   //   documentTitle: `rapport_etudiant_${selectedId}`,
   // });
 
-  const handleExportPDF = async () => {
-    console.log("mety");
+  // const handleExportPDF = async () => {
+  //   console.log("mety");
 
-    const element = document.getElementById("rapport-container");
+  //   const element = document.getElementById("rapport-container");
+  //   if (!element) return;
+
+  //   const canvas = await html2canvas(element, { scale: 2 });
+  //   const imgData = canvas.toDataURL("image/png");
+
+  //   const pdf = new jsPDF("p", "mm", "a4");
+  //   const imgProps = pdf.getImageProperties(imgData);
+  //   const pdfWidth = pdf.internal.pageSize.getWidth();
+  //   const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+  //   pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+  //   pdf.save(`rapport_etudiant_${selectedId}.pdf`);
+  // };
+  const handleExportPDF = async () => {
+    const element = document.getElementById("pdf-rapport");
     if (!element) return;
 
-    const canvas = await html2canvas(element, { scale: 2 });
-    const imgData = canvas.toDataURL("image/png");
+    try {
+      // Afficher un loader
+      const loadingToast = document.createElement("div");
+      loadingToast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #4f46e5;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        z-index: 9999;
+        font-family: Inter, sans-serif;
+        font-size: 14px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      `;
+      loadingToast.textContent = "Génération du PDF en cours...";
+      document.body.appendChild(loadingToast);
 
-    const pdf = new jsPDF("p", "mm", "a4");
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      // Capturer l'élément en haute qualité
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+      });
 
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-    pdf.save(`rapport_etudiant_${selectedId}.pdf`);
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const imgX = (pdfWidth - imgWidth * ratio) / 2;
+      const imgY = 0;
+
+      // Gérer les pages multiples si nécessaire
+      let heightLeft = imgHeight * ratio;
+      let position = 0;
+
+      pdf.addImage(
+        imgData,
+        "PNG",
+        imgX,
+        imgY,
+        imgWidth * ratio,
+        imgHeight * ratio
+      );
+      heightLeft -= pdfHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight * ratio;
+        pdf.addPage();
+        pdf.addImage(
+          imgData,
+          "PNG",
+          imgX,
+          position,
+          imgWidth * ratio,
+          imgHeight * ratio
+        );
+        heightLeft -= pdfHeight;
+      }
+
+      pdf.save(
+        `rapport_etudiant_${data?.etudiant.etudiant_matricule}_${
+          new Date().toISOString().split("T")[0]
+        }.pdf`
+      );
+
+      // Retirer le loader
+      document.body.removeChild(loadingToast);
+
+      // Afficher un message de succès
+      const successToast = document.createElement("div");
+      successToast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #22c55e;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        z-index: 9999;
+        font-family: Inter, sans-serif;
+        font-size: 14px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      `;
+      successToast.textContent = "✓ PDF généré avec succès !";
+      document.body.appendChild(successToast);
+      setTimeout(() => document.body.removeChild(successToast), 3000);
+    } catch (error) {
+      console.error("Erreur lors de la génération du PDF:", error);
+      alert("Une erreur est survenue lors de la génération du PDF");
+    }
   };
 
   const getScoreColor = (score: string): string => {
@@ -1799,6 +1904,11 @@ const Rapport: React.FC<RapportEtudiantProps> = ({ etudiantId }) => {
           </ul>
         </div>
       </div>
+      {/* Composant PDF caché - utilisé uniquement pour l'export */}
+      <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+        <PDFRapportEtudiant data={data} />
+      </div>
+      ;
     </div>
   );
 };
