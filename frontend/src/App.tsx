@@ -49,7 +49,7 @@ function App() {
             }
           />
           <Route
-            path="/rapport/etudiant"
+            path="/rapport/etudiant/:id"
             element={
               isAuthenticated ? (
                 <Layout>

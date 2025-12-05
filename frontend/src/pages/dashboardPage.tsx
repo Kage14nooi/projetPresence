@@ -54,6 +54,7 @@ const Dashboard = () => {
       setError(null);
       const result = await getDashboardDataAvance();
       setData(result);
+      console.log("tsila test ", result);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Une erreur est survenue";
@@ -437,10 +438,8 @@ const Dashboard = () => {
                         </td>
                         <td className="px-4 py-3">
                           <button
-                            onClick={
-                              () =>
-                                (window.location.href = `/rapport/etudiant/`)
-                              // (window.location.href = `/rapport/etudiant/${item.etudiant?.id}`)
+                            onClick={() =>
+                              (window.location.href = `/rapport/etudiant/${item.etudiant?.id}`)
                             }
                             className="group relative p-2 text-green-600 hover:text-white hover:bg-green-600 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
                             title="Voir le détail"
